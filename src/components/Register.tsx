@@ -2,29 +2,38 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
 import { auth } from '../firebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUser } from '../firestore/createUsers';
 
 const Register = ({ navigation }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleRegister = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        setEmail('');
-        setPassword('');
-        setErrorMessage('');
-        navigation.navigate('Login');
-      })
-      .catch((error) => {
-        setErrorMessage(error.message);
-      });
-  };
+    const handleRegister = async () => {
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userId = userCredential.user.uid;
+            await createUser(userId, name, email);
 
-  return (
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => navigation.navigate('Home'));
+        } catch (error: unknown) {
+            if (error instanceof Error) setErrorMessage(error.message);
+            else setErrorMessage('Ocorreu um erro desconhecido');
+        }
+    };
+
+    return (
     <View style={styles.container}>
       <Text style={styles.title}>Registro</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Nome"
+        value={name}
+        onChangeText={setName}
+      />
       <TextInput
         style={styles.input}
         placeholder="Email"
