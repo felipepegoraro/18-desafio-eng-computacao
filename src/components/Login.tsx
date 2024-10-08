@@ -1,13 +1,16 @@
 // src/components/Login.js
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { TextInput, Button, Text, useTheme, HelperText } from 'react-native-paper';
 import { auth } from '../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
-const Login = ({navigation}) => {
+
+const Login = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const theme = useTheme();
 
     const handleLogin = () => {
         signInWithEmailAndPassword(auth, email, password)
@@ -16,69 +19,91 @@ const Login = ({navigation}) => {
                 setPassword('');
                 setErrorMessage('');
                 navigation.navigate('Home');
-                console.log("OK");
             })
             .catch((error) => {
                 setErrorMessage(error.message);
             });
     };
 
+    const hasErrors = () => {
+        return email === '' || password === '';
+    };
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
+            <Text variant="headlineLarge" style={styles.title}>
+                Entrar
+            </Text>
+
             <TextInput
-                style={styles.input}
-                placeholder="Email"
+                label="Email"
                 value={email}
-                onChangeText={setEmail}/>
+                onChangeText={setEmail}
+                style={styles.input}
+                mode="outlined"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                left={<TextInput.Icon icon="email"/>}
+            />
+            <HelperText type="error" visible={!email && errorMessage}>
+                {errorMessage}
+            </HelperText>
 
             <TextInput
-                style={styles.input}
-                placeholder="Senha"
-                secureTextEntry
+                label="Senha"
                 value={password}
-                onChangeText={setPassword}/>
-            
-            {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+                onChangeText={setPassword}
+                style={styles.input}
+                mode="outlined"
+                secureTextEntry
+                left={<TextInput.Icon icon="lock" />}
+            />
+            <HelperText type="error" visible={errorMessage}>
+                {errorMessage}
+            </HelperText>
 
-            <Button title="Entrar" onPress={handleLogin} />
+            <Button
+                mode="contained"
+                onPress={handleLogin}
+                style={styles.button}
+                disabled={hasErrors()}
+            >
+                Entrar
+            </Button>
 
             <Text style={styles.registerText} onPress={() => navigation.navigate('Register')}>
-                Não tem uma conta? Registre-se
+                Não tem uma conta? <Text style={styles.registerLink}>Registre-se</Text>
             </Text>
-        
         </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  },
-  error: {
-    color: 'red',
-    marginBottom: 10,
-  },
-  registerText: {
-    marginTop: 15,
-    color: 'blue',
-    textAlign: 'center',
-  },
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        padding: 20,
+        backgroundColor: '#fff',
+    },
+    title: {
+        marginBottom: 30,
+        textAlign: 'center',
+        color: '#333'
+    },
+    button: {
+        marginTop: 10,
+        paddingVertical: 8,
+    },
+    registerText: {
+        marginTop: 20,
+        textAlign: 'center',
+        fontSize: 16,
+        color: '#666',
+    },
+    registerLink: {
+        color: '#1e88e5',
+        fontWeight: 'bold',
+    },
 });
 
 export default Login;
-

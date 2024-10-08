@@ -13,20 +13,11 @@ export default function App() {
     return (
         <NavigationContainer independent={true}>
             <Stack.Navigator initialRouteName="Login">
-                <Stack.Screen name="Login" component={Login} />
-                <Stack.Screen name="Register" component={Register} />
+                <Stack.Screen name="Login" component={Login} options={{ headerShown: false }}/>
+                <Stack.Screen name="Register" component={Register} options={{ headerShown: false }}/>
                 <Stack.Screen name="Home" component={Home} />
             </Stack.Navigator>
             <StatusBar style="auto" />
         </NavigationContainer>
     );
 }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//   },
-// });
