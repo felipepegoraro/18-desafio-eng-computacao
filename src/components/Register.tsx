@@ -3,39 +3,57 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text, useTheme, HelperText } from 'react-native-paper';
 import { auth } from '../firebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUser } from '../firestore/createUsers';
 
 const Register = ({ navigation }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const theme = useTheme();
 
-  const handleRegister = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        setEmail('');
-        setPassword('');
-        setErrorMessage('');
-        navigation.navigate('Login');
-      })
-      .catch((error) => {
-        setErrorMessage(error.message);
-      });
-  };
+    const handleRegister = async () => {
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userId = userCredential.user.uid;
+            await createUser(userId, name, email);
 
+<<<<<<< HEAD
   const hasErrors = () => {
     return email === '' || password === '';
   };
 
   return (
+=======
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => navigation.navigate('Home'));
+        } catch (error: unknown) {
+            if (error instanceof Error) setErrorMessage(error.message);
+            else setErrorMessage('Ocorreu um erro desconhecido');
+        }
+    };
+
+    return (
+>>>>>>> ba7842dc29ff54d7d2bc8661fc09d3741e792a08
     <View style={styles.container}>
       <Text variant="headlineLarge" style={styles.title}>
         Registrar
       </Text>
 
       <TextInput
+<<<<<<< HEAD
         label="Email"
+=======
+        style={styles.input}
+        placeholder="Nome"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+>>>>>>> ba7842dc29ff54d7d2bc8661fc09d3741e792a08
         value={email}
         onChangeText={setEmail}
         mode="outlined"
