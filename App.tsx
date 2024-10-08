@@ -11,6 +11,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Login from "./src/components/Login";
 import Register from "./src/components/Register";
 import Home from "./src/components/Home";
+import Note from "./src/components/Note";
 import { PaperProvider } from "react-native-paper";
 
 const Stack = createNativeStackNavigator();
@@ -43,6 +44,9 @@ export default function App() {
           */}
             <Drawer.Screen name="Meu Perfil" component={Home} />
             <Drawer.Screen name="Meus Pets" component={Home} />
+
+            {/* remover dps */}
+            <Drawer.Screen name="Nota" component={Note} />
           </Drawer.Navigator>
         ) : (
           <Stack.Navigator initialRouteName="Login">
