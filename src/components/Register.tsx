@@ -32,26 +32,38 @@ const Register = ({ navigation }) => {
       const userId = userCredential.user.uid;
       await createUser(userId, name, email);
 
-      signInWithEmailAndPassword(auth, email, password).then(() =>
-        navigation.navigate("Home")
-      );
-    } catch (error: unknown) {
-      if (error instanceof Error) setErrorMessage(error.message);
-      else setErrorMessage("Ocorreu um erro desconhecido");
-    }
+<<<<<<< HEAD
+  const hasErrors = () => {
+    return email === '' || password === '';
   };
 
   return (
+=======
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => navigation.navigate('Home'));
+        } catch (error: unknown) {
+            if (error instanceof Error) setErrorMessage(error.message);
+            else setErrorMessage('Ocorreu um erro desconhecido');
+        }
+    };
+
+    return (
+>>>>>>> ba7842dc29ff54d7d2bc8661fc09d3741e792a08
     <View style={styles.container}>
       <Text style={styles.title}>Registro</Text>
       <TextInput
+<<<<<<< HEAD
+        label="Email"
+=======
         style={styles.input}
         placeholder="Nome"
         value={name}
         onChangeText={setName}
       />
       <TextInput
-        label="Email"
+        style={styles.input}
+        placeholder="Email"
+>>>>>>> ba7842dc29ff54d7d2bc8661fc09d3741e792a08
         value={email}
         onChangeText={setEmail}
         mode="outlined"
