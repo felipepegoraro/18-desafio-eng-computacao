@@ -10,8 +10,8 @@ import {
 } from "react-native-paper";
 import { auth } from "../firebaseConfig";
 import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
 } from "firebase/auth";
 import { createUser } from "../firestore/createUsers";
 
@@ -32,43 +32,42 @@ const Register = ({ navigation }) => {
       const userId = userCredential.user.uid;
       await createUser(userId, name, email);
 
-<<<<<<< HEAD
+      signInWithEmailAndPassword(auth, email, password).then(() => {
+        navigation.navigate("Home");
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) setErrorMessage(error.message);
+      else setErrorMessage("Ocorreu um erro desconhecido");
+    }
+  };
+
   const hasErrors = () => {
-    return email === '' || password === '';
+    return email === "" || password === "";
   };
 
   return (
-=======
-            signInWithEmailAndPassword(auth, email, password)
-                .then(() => navigation.navigate('Home'));
-        } catch (error: unknown) {
-            if (error instanceof Error) setErrorMessage(error.message);
-            else setErrorMessage('Ocorreu um erro desconhecido');
-        }
-    };
-
-    return (
->>>>>>> ba7842dc29ff54d7d2bc8661fc09d3741e792a08
     <View style={styles.container}>
-      <Text style={styles.title}>Registro</Text>
+      <Text variant="headlineLarge" style={styles.title}>
+        Registrar
+      </Text>
+
       <TextInput
-<<<<<<< HEAD
-        label="Email"
-=======
-        style={styles.input}
-        placeholder="Nome"
+        label="Nome"
         value={name}
         onChangeText={setName}
-      />
-      <TextInput
+        mode="outlined"
         style={styles.input}
-        placeholder="Email"
->>>>>>> ba7842dc29ff54d7d2bc8661fc09d3741e792a08
+        left={<TextInput.Icon icon="account" />}
+      />
+
+      <TextInput
+        label="Email"
         value={email}
         onChangeText={setEmail}
         mode="outlined"
         keyboardType="email-address"
         autoCapitalize="none"
+        style={styles.input}
         left={<TextInput.Icon icon="email" />}
       />
       <HelperText type="error" visible={!email && errorMessage}>
@@ -81,6 +80,7 @@ const Register = ({ navigation }) => {
         onChangeText={setPassword}
         mode="outlined"
         secureTextEntry
+        style={styles.input}
         left={<TextInput.Icon icon="lock" />}
       />
       <HelperText type="error" visible={errorMessage}>
@@ -116,11 +116,16 @@ const styles = StyleSheet.create({
   title: {
     marginBottom: 30,
     textAlign: "center",
-    color: "#333"
+    color: "#333",
+    fontSize: 24
+  },
+  input: {
+    marginBottom: 10
   },
   button: {
     marginTop: 10,
-    paddingVertical: 8
+    paddingVertical: 8,
+    borderRadius: 25
   },
   loginText: {
     marginTop: 20,
