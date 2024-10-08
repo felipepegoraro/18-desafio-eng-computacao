@@ -11,6 +11,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Login from "./src/components/Login";
 import Register from "./src/components/Register";
 import Home from "./src/components/Home";
+import { PaperProvider } from "react-native-paper";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -30,22 +31,31 @@ export default function App() {
   }, []);
 
   return (
-    <NavigationContainer>
-      {user ? (
-        <Drawer.Navigator initialRouteName="Home">
-          <Drawer.Screen name="Home" component={Home} />
-        </Drawer.Navigator>
-      ) : (
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen
-            name="Login"
-            component={Login}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="Register" component={Register} />
-        </Stack.Navigator>
-      )}
-      <StatusBar style="auto" />
-    </NavigationContainer>
+    <PaperProvider>
+      <NavigationContainer>
+        {user ? (
+          <Drawer.Navigator initialRouteName="Home">
+            <Drawer.Screen name="Home" component={Home} />
+            {/* TODO:
+                Adicionar telas com as informações do Usuario
+                Adicionar telas com as informações dos pets
+
+          */}
+            <Drawer.Screen name="Meu Perfil" component={Home} />
+            <Drawer.Screen name="Meus Pets" component={Home} />
+          </Drawer.Navigator>
+        ) : (
+          <Stack.Navigator initialRouteName="Login">
+            <Stack.Screen
+              name="Login"
+              component={Login}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="Register" component={Register} />
+          </Stack.Navigator>
+        )}
+        <StatusBar style="auto" />
+      </NavigationContainer>
+    </PaperProvider>
   );
 }
