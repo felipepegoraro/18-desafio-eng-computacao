@@ -1,31 +1,48 @@
 // src/components/Register.js
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { TextInput, Button, Text, useTheme, HelperText } from 'react-native-paper';
-import { auth } from '../firebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import React, { useState } from "react";
+import { View, StyleSheet } from "react-native";
+import {
+  TextInput,
+  Button,
+  Text,
+  useTheme,
+  HelperText
+} from "react-native-paper";
+import { auth } from "../firebaseConfig";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from "firebase/auth";
+import { createUser } from "../firestore/createUsers";
 
 const Register = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const theme = useTheme();
 
-  const handleRegister = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        setEmail('');
-        setPassword('');
-        setErrorMessage('');
-        navigation.navigate('Login');
-      })
-      .catch((error) => {
-        setErrorMessage(error.message);
+  const handleRegister = async () => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const userId = userCredential.user.uid;
+      await createUser(userId, name, email);
+
+      signInWithEmailAndPassword(auth, email, password).then(() => {
+        navigation.navigate("Home");
       });
+    } catch (error: unknown) {
+      if (error instanceof Error) setErrorMessage(error.message);
+      else setErrorMessage("Ocorreu um erro desconhecido");
+    }
   };
 
   const hasErrors = () => {
-    return email === '' || password === '';
+    return email === "" || password === "";
   };
 
   return (
@@ -35,12 +52,22 @@ const Register = ({ navigation }) => {
       </Text>
 
       <TextInput
+        label="Nome"
+        value={name}
+        onChangeText={setName}
+        mode="outlined"
+        style={styles.input}
+        left={<TextInput.Icon icon="account" />}
+      />
+
+      <TextInput
         label="Email"
         value={email}
         onChangeText={setEmail}
         mode="outlined"
         keyboardType="email-address"
         autoCapitalize="none"
+        style={styles.input}
         left={<TextInput.Icon icon="email" />}
       />
       <HelperText type="error" visible={!email && errorMessage}>
@@ -53,6 +80,7 @@ const Register = ({ navigation }) => {
         onChangeText={setPassword}
         mode="outlined"
         secureTextEntry
+        style={styles.input}
         left={<TextInput.Icon icon="lock" />}
       />
       <HelperText type="error" visible={errorMessage}>
@@ -68,7 +96,10 @@ const Register = ({ navigation }) => {
         Registrar
       </Button>
 
-      <Text style={styles.loginText} onPress={() => navigation.navigate('Login')}>
+      <Text
+        style={styles.loginText}
+        onPress={() => navigation.navigate("Login")}
+      >
         Já tem uma conta? <Text style={styles.loginLink}>Entrar</Text>
       </Text>
     </View>
@@ -78,29 +109,34 @@ const Register = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff"
   },
   title: {
     marginBottom: 30,
-    textAlign: 'center',
-    color: '#333',
+    textAlign: "center",
+    color: "#333",
+    fontSize: 24
+  },
+  input: {
+    marginBottom: 10
   },
   button: {
     marginTop: 10,
     paddingVertical: 8,
+    borderRadius: 25
   },
   loginText: {
     marginTop: 20,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
-    color: '#666',
+    color: "#666"
   },
   loginLink: {
-    color: '#1e88e5',
-    fontWeight: 'bold',
-  },
+    color: "#1e88e5",
+    fontWeight: "bold"
+  }
 });
 
 export default Register;

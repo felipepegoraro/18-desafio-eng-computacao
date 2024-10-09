@@ -1,5 +1,5 @@
 // src/components/Home.js
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, View, StyleSheet } from "react-native";
 import {
   Card,
@@ -10,7 +10,9 @@ import {
   useTheme
 } from "react-native-paper";
 
-import { auth } from "../firebaseConfig";
+import { db, auth } from "../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
+import RegisterNewPet from "./registerNewPet";
 
 const Home = () => {
   const theme = useTheme();
@@ -48,6 +50,33 @@ const Home = () => {
   const [state, setState] = useState({ open: false });
   const onStateChange = ({ open }) => setState({ open });
   const { open } = state;
+  const [username, setUsername] = useState("");
+  const [ownsPet, setOwnsPet] = useState(false);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        if (user) {
+          console.log("Current user UID:", user.uid);
+          const docRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            console.log(docSnap.data());
+            setUsername(docSnap.data().name);
+            setOwnsPet(docSnap.data().ownsPet);
+            console.log("has pet? ", docSnap.data().ownsPet);
+          } else {
+            console.log("Sem doc!");
+          }
+        } else {
+          console.log("Nenhum usuario logado");
+        }
+      } catch (error) {
+        console.error("erro fetching o nome", error);
+      }
+    };
+    fetchUserName();
+  }, [user]);
 
   return (
     <Provider>
