@@ -14,7 +14,7 @@ import { db, auth } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import RegisterNewPet from "./registerNewPet";
 
-const Home = () => {
+const Home = ({ navigation }) => {
   const theme = useTheme();
 
   // MOCKUP NOTAS
@@ -113,9 +113,10 @@ const Home = () => {
             icon={open ? "paw-off" : "paw"}
             actions={[
               {
-                icon: "omega",
-                label: "WIP...",
-                onPress: () => console.log("Pressed add")
+                // Adiciona caixas de notas
+                icon: "note-edit",
+                label: "Notas",
+                onPress: () => console.log("Pressed Notas")
               },
               {
                 icon: "bell",
@@ -124,10 +125,10 @@ const Home = () => {
                 onPress: () => console.log("Pressed Lembretes")
               },
               {
-                // Adiciona caixas de notas
-                icon: "note-edit",
-                label: "Notas",
-                onPress: () => console.log("Pressed Notas")
+                icon: "heart-plus",
+                label: "Cadastrar Pet",
+                // TODO: nao sei se esta passando os dados certos do usuario logado
+                onPress: () => navigation.navigate("RegisterNewPet")
               }
             ]}
             onStateChange={onStateChange}

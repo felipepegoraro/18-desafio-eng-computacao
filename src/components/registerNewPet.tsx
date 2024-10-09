@@ -1,117 +1,190 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { Pet } from '../firestore/createPets';
-import { db } from '../firebaseConfig';
-import { doc , setDoc } from 'firebase/firestore';
+import React, { useState } from "react";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform
+} from "react-native";
+import {
+  TextInput,
+  Button,
+  Text,
+  RadioButton,
+  Avatar,
+  IconButton
+} from "react-native-paper";
+import * as ImagePicker from "expo-image-picker";
 
-const saveNewPet = async (pet: Pet) => {
-    if (!pet) return;
+const RegisterNewPet = ({ userId }) => {
+  const [name, setName] = useState("");
+  const [breed, setBreed] = useState("");
+  const [gender, setGender] = useState("");
+  const [weight, setWeight] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [type, setType] = useState("DOG");
+  const [image, setImage] = useState(null);
 
-    try { 
-        const petDocRef = doc(db, 'pets', pet.name); // todo: outras formas de salvar/ID
-        await setDoc(petDocRef, pet);
-        console.log('Pet salvo com sucesso:', pet);
-    } catch (error) {
-        console.error('Erro ao salvar o pet:', error);
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1
+    });
+
+    if (!result.canceled) {
+      setImage(result.uri);
     }
-};
+  };
 
-const RegisterNewPet = ({ userId }: { userId: string }) => {
-    const [name, setName] = useState('');
-    // const [type, setType] = useState<"DOG" | "CAT">("DOG");
-    const [breed, setBreed] = useState('');
-    const [gender, setGender] = useState('');
-    const [weight, setWeight] = useState('');
-    const [birthDate, setBirthDate] = useState('');
-    const [notes, setNotes] = useState('');
-
-    const handleSubmit = async () => {
-        const newPet: Pet = {
-            userId,
-            name,
-            type: "DOG",
-            breed,
-            gender,
-            weight: Number(weight),
-            birthDate: new Date(birthDate),
-            notes: notes || undefined,
-        };
-        
-        try {
-            await saveNewPet(newPet);
-            const userDocRef = doc(db,'users', userId);
-            if (userDocRef){
-                await setDoc(userDocRef, {ownsPet: true}, {merge: true});
-                console.log("usuario cadastrou um pet!");
-            }
-        } catch(error){
-            console.log(error);
-        }
+  const handleSubmit = async () => {
+    const newPet = {
+      userId,
+      name,
+      type,
+      breed,
+      gender,
+      weight: Number(weight),
+      birthDate: new Date(birthDate),
+      notes: notes || undefined
     };
+  };
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Cadastrar Novo Pet</Text>
-
-            <TextInput
-                style={styles.input}
-                placeholder="Nome do Pet"
-                value={name}
-                onChangeText={setName}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Raça"
-                value={breed}
-                onChangeText={setBreed}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Gênero"
-                value={gender}
-                onChangeText={setGender}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Peso (kg)"
-                keyboardType="numeric"
-                value={weight}
-                onChangeText={setWeight}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Data de Nascimento (YYYY-MM-DD)"
-                value={birthDate}
-                onChangeText={setBirthDate}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Notas"
-                value={notes}
-                onChangeText={setNotes}
-            />
-
-            <Button title="Cadastrar Pet" onPress={handleSubmit} />
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.avatarContainer}>
+          <Avatar.Image
+            size={100}
+            source={{
+              uri:
+                image ||
+                "https://cdn-icons-png.flaticon.com/512/5094/5094257.png"
+            }}
+          />
+          <IconButton icon="camera" size={30} onPress={pickImage} />
         </View>
-    );
+
+        <TextInput
+          label="Nome do Pet"
+          mode="outlined"
+          value={name}
+          onChangeText={setName}
+          style={styles.input}
+        />
+
+        <View style={styles.radioGroup}>
+          <Text style={styles.radioLabel}>Espécie:</Text>
+          <RadioButton.Group
+            onValueChange={(value) => setType(value)}
+            value={type}
+          >
+            <View style={styles.radioRow}>
+              <RadioButton value="dog" />
+              <Text>Cachorro</Text>
+              <RadioButton value="cat" />
+              <Text>Gato</Text>
+            </View>
+          </RadioButton.Group>
+        </View>
+
+        <TextInput
+          label="Raça"
+          mode="outlined"
+          value={breed}
+          onChangeText={setBreed}
+          style={styles.input}
+        />
+
+        <View style={styles.radioGroup}>
+          <Text style={styles.radioLabel}>Gênero:</Text>
+          <RadioButton.Group
+            onValueChange={(value) => setGender(value)}
+            value={gender}
+          >
+            <View style={styles.radioRow}>
+              <RadioButton value="Macho" />
+              <Text>Macho</Text>
+              <RadioButton value="Fêmea" />
+              <Text>Fêmea</Text>
+            </View>
+          </RadioButton.Group>
+        </View>
+
+        <TextInput
+          label="Peso (kg)"
+          mode="outlined"
+          keyboardType="numeric"
+          value={weight}
+          onChangeText={setWeight}
+          style={styles.input}
+        />
+
+        <TextInput
+          label="Data de Nascimento"
+          mode="outlined"
+          placeholder="DD-MM-YYYY"
+          value={birthDate}
+          onChangeText={setBirthDate}
+          style={styles.input}
+        />
+
+        <TextInput
+          label="Nota"
+          mode="outlined"
+          multiline
+          numberOfLines={4}
+          value={notes}
+          onChangeText={setNotes}
+          style={styles.input}
+        />
+
+        <Button
+          mode="contained"
+          onPress={handleSubmit}
+          style={styles.submitButton}
+        >
+          Cadastrar Pet
+        </Button>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 20,
-        backgroundColor: '#fff',
-    },
-    title: {
-        fontSize: 24,
-        marginBottom: 20,
-    },
-    input: {
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1,
-        marginBottom: 10,
-        padding: 10,
-    },
+  container: {
+    padding: 20,
+    backgroundColor: "#fff",
+    flexGrow: 1
+  },
+  avatarContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20
+  },
+  input: {
+    marginBottom: 10
+  },
+  radioGroup: {
+    marginVertical: 10
+  },
+  radioRow: {
+    flexDirection: "row",
+    alignItems: "center"
+  },
+  radioLabel: {
+    fontWeight: "bold"
+  },
+  submitButton: {
+    marginTop: 20,
+    marginBottom: 10
+  }
 });
 
 export default RegisterNewPet;

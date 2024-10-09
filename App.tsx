@@ -13,6 +13,7 @@ import Register from "./src/components/Register";
 import Home from "./src/components/Home";
 import Note from "./src/components/Note";
 import { PaperProvider } from "react-native-paper";
+import RegisterNewPet from "./src/components/registerNewPet";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -47,6 +48,10 @@ export default function App() {
 
             {/* remover dps */}
             <Drawer.Screen name="Nota" component={Note} />
+            <Stack.Screen
+              name="Cadastrar Novo Pet"
+              component={RegisterNewPet}
+            />
           </Drawer.Navigator>
         ) : (
           <Stack.Navigator initialRouteName="Login">
