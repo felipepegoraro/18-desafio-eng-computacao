@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Picker } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { Pet } from '../firestore/createPets';
 import { db } from '../firebaseConfig';
 import { doc , setDoc } from 'firebase/firestore';
@@ -18,7 +18,7 @@ const saveNewPet = async (pet: Pet) => {
 
 const RegisterNewPet = ({ userId }: { userId: string }) => {
     const [name, setName] = useState('');
-    const [type, setType] = useState<"DOG" | "CAT">("DOG");
+    // const [type, setType] = useState<"DOG" | "CAT">("DOG");
     const [breed, setBreed] = useState('');
     const [gender, setGender] = useState('');
     const [weight, setWeight] = useState('');
@@ -29,7 +29,7 @@ const RegisterNewPet = ({ userId }: { userId: string }) => {
         const newPet: Pet = {
             userId,
             name,
-            type,
+            type: "DOG",
             breed,
             gender,
             weight: Number(weight),
@@ -59,14 +59,6 @@ const RegisterNewPet = ({ userId }: { userId: string }) => {
                 value={name}
                 onChangeText={setName}
             />
-            <Picker
-                selectedValue={type}
-                onValueChange={(itemValue) => setType(itemValue)}
-                style={styles.picker}
-            >
-                <Picker.Item label="Cachorro" value="DOG" />
-                <Picker.Item label="Gato" value="CAT" />
-            </Picker>
             <TextInput
                 style={styles.input}
                 placeholder="Raça"
@@ -119,11 +111,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         marginBottom: 10,
         padding: 10,
-    },
-    picker: {
-        height: 50,
-        width: '100%',
-        marginBottom: 10,
     },
 });
 
