@@ -1,52 +1,22 @@
-// src/components/Home.js
 import { useEffect, useState } from "react";
 import { ScrollView, View, StyleSheet } from "react-native";
 import {
   Card,
   Text,
-  FAB,
-  Portal,
   Provider,
+  Avatar,
+  Button,
   useTheme
 } from "react-native-paper";
 
 import { db, auth } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
-import Register from "./Register";
-import RegisterNewPet from "./registerNewPet";
+
+import PetCard from "./PetCard";
 
 const Home = ({ navigation }) => {
-  const theme = useTheme();
-
-  // MOCKUP NOTAS
-  const notes = [
-    {
-      id: 1,
-      title: "Nota 1",
-      content: "Descrição da nota 1...",
-      color: "#FFD700"
-    },
-    {
-      id: 2,
-      title: "Nota 2",
-      content: "Descrição da nota 2...",
-      color: "#1E90FF"
-    },
-    {
-      id: 3,
-      title: "Nota 3",
-      content: "Descrição da nota 3...",
-      color: "#32CD32"
-    },
-    {
-      id: 4,
-      title: "Nota 4",
-      content: "Descrição da nota 4...",
-      color: "#FF6347"
-    }
-  ];
-
   const user = auth.currentUser;
+  const theme = useTheme();
 
   const [state, setState] = useState({ open: false });
   const onStateChange = ({ open }) => setState({ open });
@@ -79,18 +49,30 @@ const Home = ({ navigation }) => {
     fetchUserName();
   }, [user]);
 
+  // Dados do pet do usuario
+  const mockPet = {
+    PesoPet: "8kg",
+    EspeciePet: "Cachorro",
+    NomePet: "Max",
+    DadoExtraPet: "Golden Retriever",
+    ImgPet:
+      "https://t3.ftcdn.net/jpg/08/08/50/08/360_F_808500839_PbOxOfC4bdGG8ttFazqi7fiziFlqlaSk.jpg"
+  };
+
   return (
     <Provider>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {ownsPet ? (
-            //TODO: Se tiver pets, mostrar eles como Card
-            <Text>BBBBBBBBBBB</Text>
-          ) : //TODO: Botar animação de loading enquanto carrega info
-          user ? (
-            <RegisterNewPet userId={user.uid} />
+            <PetCard
+              PesoPet={mockPet.PesoPet}
+              EspeciePet={mockPet.EspeciePet}
+              NomePet={mockPet.NomePet}
+              DadoExtraPet={mockPet.DadoExtraPet}
+              ImgPet={mockPet.ImgPet}
+            />
           ) : (
-            <Text>Erro: Nenhum usuário logado</Text>
+            <Text>Você ainda não cadastrou nenhum pet!</Text>
           )}
         </ScrollView>
       </View>
@@ -101,31 +83,56 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff"
+    backgroundColor: "#f5f5f5"
   },
   scrollContainer: {
     paddingVertical: 10,
     paddingHorizontal: 15,
     justifyContent: "center"
   },
-  card: {
+  cardPet: {
     marginBottom: 15,
-    borderRadius: 15
+    borderRadius: 20,
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 5
   },
-  cardTitle: {
-    fontWeight: "bold",
-    color: "#fff"
+  imageContainer: {
+    alignItems: "center",
+    marginTop: 15
+  },
+  avatarPet: {
+    borderColor: "#ccc",
+    borderRadius: 60
   },
   cardContent: {
-    color: "#fff",
-    minHeight: 100,
-    marginTop: 5
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    alignItems: "center"
   },
-  fab: {
-    position: "absolute",
-    right: 16,
-    bottom: 16,
-    backgroundColor: "#1E88E5"
+  petName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 5
+  },
+  petInfo: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 3
+  },
+  cardActions: {
+    flexDirection: "row",
+    justifyContent: "center",
+    paddingBottom: 15,
+    marginRight: "5%"
+  },
+  actionButton: {
+    marginHorizontal: 10, // Adiciona espaçamento entre os botões
+    width: "40%" // Mantém o tamanho dos botões
   }
 });
 
