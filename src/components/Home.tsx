@@ -12,6 +12,7 @@ import {
 
 import { db, auth } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
+import Register from "./Register";
 import RegisterNewPet from "./registerNewPet";
 
 const Home = ({ navigation }) => {
@@ -82,62 +83,16 @@ const Home = ({ navigation }) => {
     <Provider>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {notes.map((note) => (
-            <Card
-              onLongPress={() =>
-                console.log("SEGURAR DA OPÇÃO DE DELETAR...popup?/modal?")
-              }
-              onPress={() => console.log("CLICAR ENTRA NA NOTA")}
-              key={note.id}
-              style={[styles.card, { backgroundColor: note.color }]}
-            >
-              <Card.Content>
-                <Text variant="titleLarge" style={styles.cardTitle}>
-                  {note.title}
-                </Text>
-                <Text style={styles.cardContent}>{note.content}</Text>
-              </Card.Content>
-            </Card>
-          ))}
+          {ownsPet ? (
+            <Text>BBBBBBBBBBB</Text>
+          ) : //TODO: Se tiver pets, mostrar eles como Card
+
+          user ? (
+            <RegisterNewPet userId={user.uid} />
+          ) : (
+            <Text>Erro: Nenhum usuário logado</Text>
+          )}
         </ScrollView>
-
-        {/* TODO:
-            FAB abre tela de criar anotações, novo atendimento e o que precisar...
-            botar a lista das telas para serem feitas:{}
-      */}
-
-        <Portal>
-          <FAB.Group
-            open={open}
-            visible
-            icon={open ? "paw-off" : "paw"}
-            actions={[
-              {
-                // Adiciona caixas de notas
-                icon: "note-edit",
-                label: "Notas",
-                onPress: () => console.log("Pressed Notas")
-              },
-              {
-                icon: "bell",
-                //   Adicionar lembretes/alarme
-                label: "Lembretes",
-                onPress: () => console.log("Pressed Lembretes")
-              },
-              {
-                icon: "heart-plus",
-                label: "Cadastrar Pet",
-                // TODO: nao sei se esta passando os dados certos do usuario logado
-                onPress: () => navigation.navigate("RegisterNewPet")
-              }
-            ]}
-            onStateChange={onStateChange}
-            onPress={() => {
-              if (open) {
-              }
-            }}
-          />
-        </Portal>
       </View>
     </Provider>
   );
@@ -154,7 +109,6 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   card: {
-    // minHeight: 150,
     marginBottom: 15,
     borderRadius: 15
   },
@@ -175,32 +129,4 @@ const styles = StyleSheet.create({
   }
 });
 
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     backgroundColor: "#fff"
-//   },
-//   title: {
-//     fontSize: 24
-//   },
-//   email: {
-//     fontSize: 18,
-//     marginTop: 10
-//   },
-//   fab: {
-//     position: "absolute",
-//     margin: 16,
-//     right: 0,
-//     bottom: 0
-//   }
-// });
-// <View style={styles.container}>
-//   <Text style={styles.title}>Bem-vindo à Home!</Text>
-//   {user ? (
-//     <Text style={styles.email}>Seu e-mail: {user.email}</Text>
-//   ) : (
-//     <Text style={styles.email}>Nenhum usuário logado</Text>
-//   )}
 export default Home;
