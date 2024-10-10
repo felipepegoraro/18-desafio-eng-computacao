@@ -35,7 +35,7 @@ export const getUserPets = async (userId: string): Promise<Pet[] | null> => {
                 id: doc.id,
                 userId: data.userId,
                 name: data.name,
-                type: data.type, // DOG or CAT
+                type: data.type,
                 breed: data.breed,
                 gender: data.gender,
                 weight: data.weight,
@@ -64,6 +64,7 @@ export const getUserNotes = async (userId: string): Promise<Note[] | null> => {
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             notes.push({
+                id: data.id,
                 title: data.title,
                 content: data.content,
                 petId: data.petId,

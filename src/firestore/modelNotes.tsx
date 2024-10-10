@@ -1,7 +1,8 @@
-import { doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, collection, addDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
 export interface Note {
+    id: string;
     title: string;
     content: string;
     userId: string;
@@ -18,20 +19,31 @@ export const createNote = async (
     content: string,
     dueDate: Date | null
 ): Promise<void> => {
-  try {
-    await setDoc(doc(db, "notes", petId), {
-        title: title,
-        content: content,
-        userId: userId,
-        petId: petId,
-        createdAt: new Date(),
-        completedAt: null,
-        dueDate: dueDate
-    } as Note);
-    console.log("Nota criada com sucesso");
-  } catch (error) {
-    console.error('Erro ao criar nota: ', error);
-  }
+    try {
+        const noteData: Note = {
+          id: '',
+          title: title,
+          content: content,
+          userId: userId,
+          petId: petId,
+          createdAt: new Date(),
+          completedAt: null,
+          dueDate: dueDate
+        };
+
+        const docRef = await addDoc(collection(db, "notes"), noteData);
+        noteData.id = docRef.id;
+
+        await updateDoc(docRef, {
+            id: docRef.id
+            });
+
+
+        console.log("Nota criada, id: ", docRef.id);
+        console.log("Nota criada com sucesso");
+    } catch (error) {
+        console.error('Erro ao criar nota: ', error);
+    }
 };
 
 export const editNote = async (noteId: string, newNote: Note): Promise<boolean> => {
