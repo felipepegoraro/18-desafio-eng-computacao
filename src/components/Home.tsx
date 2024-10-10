@@ -84,9 +84,9 @@ const Home = ({ navigation }) => {
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {ownsPet ? (
+            //TODO: Se tiver pets, mostrar eles como Card
             <Text>BBBBBBBBBBB</Text>
-          ) : //TODO: Se tiver pets, mostrar eles como Card
-
+          ) : //TODO: Botar animação de loading enquanto carrega info
           user ? (
             <RegisterNewPet userId={user.uid} />
           ) : (
