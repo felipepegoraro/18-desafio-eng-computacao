@@ -49,23 +49,21 @@ const Home = ({ navigation }) => {
   const user = auth.currentUser;
 
   const [state, setState] = useState({ open: false });
-  const onStateChange = ({ open }) => setState({ open });
-  const { open } = state;
   const [username, setUsername] = useState("");
   const [ownsPet, setOwnsPet] = useState(false);
 
   useEffect(() => {
     const fetchUserName = async () => {
+    setIsLoading(true);
       try {
         if (user) {
           console.log("Current user UID:", user.uid);
           const docRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            console.log(docSnap.data());
+            console.log("data:", docSnap.data());
             setUsername(docSnap.data().name);
             setOwnsPet(docSnap.data().ownsPet);
-            console.log("has pet? ", docSnap.data().ownsPet);
           } else {
             console.log("Sem doc!");
           }
@@ -78,7 +76,7 @@ const Home = ({ navigation }) => {
     };
     fetchUserName();
   }, [user]);
-
+  
   return (
     <Provider>
       <View style={styles.container}>
@@ -87,8 +85,8 @@ const Home = ({ navigation }) => {
             //TODO: Se tiver pets, mostrar eles como Card
             <Text>BBBBBBBBBBB</Text>
           ) : //TODO: Botar animação de loading enquanto carrega info
-          user ? (
-            <RegisterNewPet userId={user.uid} />
+          user && user.uid ? (
+            <RegisterNewPet/>
           ) : (
             <Text>Erro: Nenhum usuário logado</Text>
           )}
