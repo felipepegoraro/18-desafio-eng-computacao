@@ -1,22 +1,18 @@
 import { auth } from "../firebaseConfig"; //db
 import type { Note } from "../firestore/modelNotes";
 import { createNote, editNote } from "../firestore/modelNotes";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Picker } from "@react-native-picker/picker";
 import { getUserNotes, getUserPets } from "../firestore/createUsers";
 import type { Pet } from "../firestore/createPets";
-
-// temporario:
-import registerNewPet from "../components/registerNewPet";
 
 import {
   ScrollView,
   View,
   StyleSheet,
   TextInput,
-  KeyboardAvoidingView
 } from "react-native";
-import { Chip, FAB, Portal, Button, Modal, Text } from "react-native-paper";
+import { Chip, FAB, Portal, Button, Modal } from "react-native-paper";
 import React from "react";
 
 const mock = {
@@ -34,10 +30,6 @@ const mock = {
 // botao de criar novas notas (X)
 
 const NoteUI = () => {
-  const [state, setState] = useState({ open: false });
-  const onStateChange = ({ open }) => setState({ open });
-  const { open } = state;
-
   const user = auth.currentUser;
   const [notes, setNotes] = useState<Note[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
@@ -73,6 +65,7 @@ const NoteUI = () => {
       if (userPets) setPets(userPets);
     }
   };
+
 
   const handleCreateNote = async () => {
     if (
@@ -123,37 +116,36 @@ const NoteUI = () => {
     if (userNotes) setNotes(userNotes);
   };
 
-  const renderNoteEditor = (note: Note, index: number) => {
-    console.log("renderizando:", note.id);
-    const associatedPet = pets.find((pet) => pet.name === note.petId);
+    const renderNoteEditor = (note: Note, index: number) => {
+      const currentEditingNote = editingNotes[note.id] || { ...note };
+      const pet = pets.find(i => i.id === currentEditingNote.petId);
+      console.log("pet(",index,"): ",pet);
 
-    if (!(catChecked && dogChecked)) {
-      if (catChecked && associatedPet?.type !== "CAT") return null;
-      if (dogChecked && associatedPet?.type !== "DOG") return null;
-    }
+      if (!(dogChecked && catChecked)){
+          if (dogChecked && pet?.type !== "dog") return null;
+          if (catChecked && pet?.type !== "cat") return null;
+      }
 
-    const currentEditingNote = editingNotes[note.id] || { ...note };
-
-    return (
-      <View key={index} style={styles.noteContainer}>
-        <TextInput
-          style={styles.title}
-          editable={true}
-          value={currentEditingNote.title}
-          onChangeText={(text) => handleEditNote(note.id, "title", text)}
-        />
-        <TextInput
-          value={currentEditingNote.content}
-          onChangeText={(text) => handleEditNote(note.id, "content", text)}
-          multiline={true}
-          style={styles.textInput}
-          placeholder="Escreva sua nota aqui..."
-          autoFocus={false}
-          editable={true}
-        />
-      </View>
-    );
-  };
+      return (
+        <View key={note.id} style={styles.noteContainer}>
+          <TextInput
+            style={styles.title}
+            editable={true}
+            value={currentEditingNote.title}
+            onChangeText={(text) => handleEditNote(note.id, "title", text)}
+          />
+          <TextInput
+            value={currentEditingNote.content}
+            onChangeText={(text) => handleEditNote(note.id, "content", text)}
+            multiline={true}
+            style={styles.textInput}
+            placeholder="Escreva sua nota aqui..."
+            autoFocus={false}
+            editable={true}
+          />
+        </View>
+      );
+    };
 
   const renderNoteList = () => (
     <ScrollView>
@@ -161,15 +153,25 @@ const NoteUI = () => {
     </ScrollView>
   );
 
+    pets.map((i: Pet) => {
+        console.log("name(",i.name,") id(",i.id,")");
+    })
+
+    notes.map((i: Note) => {
+        console.log("id(",i.id,") petId(", i.petId,")");
+    });
+
   const renderCreateNoteSection = () => (
     <>
       <Picker
         selectedValue={selectedPetId}
-        onValueChange={(itemValue: string) => setSelectedPetId(itemValue)}
+        onValueChange={(itemValue: string) => {
+            setSelectedPetId(itemValue)
+        }}
       >
         <Picker.Item label="Selecione um pet" value={""} />
         {pets.map((pet) => (
-          <Picker.Item key={pet.name} label={pet.name} value={pet.name} />
+          <Picker.Item key={pet.id} label={pet.name} value={pet.id} />
         ))}
       </Picker>
 
@@ -224,10 +226,9 @@ const NoteUI = () => {
       const editedNote: Note = {
         ...note,
         title: editingNotes[note.id]?.title || note.title,
-        content: editingNotes[note.id]?.content || note.content
+        content: editingNotes[note.id]?.content || note.content,
       };
 
-      console.log("editado: ", editedNote);
       return editNote(note.id, editedNote);
     });
 

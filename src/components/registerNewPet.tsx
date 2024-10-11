@@ -24,7 +24,7 @@ const RegisterNewPet = () => {
 
   const [pet, setPet] = useState<Pet>({
     name: "",
-    type: "DOG",
+    type: "dog",
     breed: "",
     gender: "macho",
     weight: 0.0,
@@ -98,7 +98,7 @@ const RegisterNewPet = () => {
         <View style={styles.radioGroup}>
           <Text style={styles.radioLabel}>Espécie:</Text>
           <RadioButton.Group
-            onValueChange={(value) => setPet((prev) => ({ ...prev, type: value as "DOG" | "CAT"}))}
+            onValueChange={(value) => setPet((prev) => ({ ...prev, type: value as "dog" | "cat"}))}
             value={pet.type}
           >
             <View style={styles.radioRow}>
