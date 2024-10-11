@@ -36,18 +36,8 @@ type NoteFilters = {
   completed: boolean;
 };
 
-// USUARIO POSSUI NOTA? (OK)
-// SE SIM EXIBIR AS NOTAS (OK)
-// SE NAO, TELA "aDICIONE NOVAS NOTAS" (OK)
-
-// cada nota:
-// editavel (OK)
-// marcada como completada (OK)
-// deletavel (OK)
-// (talvez: possibilidade de selecionar e (deletar | concluir)) [OK]
-// botao de criar novas notas (OK)
-
 const NoteUI = () => {
+  console.log("NOTEUI: renderizado de novo"); // TODO: USAR USEREF PARA NAO ATUALIZAR SEMPRE.
   const user = auth.currentUser;
 
   const [notes, setNotes] = useState<Note[]>([]);
