@@ -13,6 +13,7 @@ import { db, auth } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
 import PetCard from "./PetCard";
+import RegisterNewPet from "./registerNewPet";
 
 const Home = ({ navigation }) => {
   const user = auth.currentUser;
