@@ -63,6 +63,9 @@ const Home = ({ navigation }) => {
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {ownsPet ? (
+            <RegisterNewPet />
+          ) : //TODO: Botar animação de loading enquanto carrega info
+          user && user.uid ? (
             <PetCard
               PesoPet={mockPet.PesoPet}
               EspeciePet={mockPet.EspeciePet}
@@ -70,10 +73,8 @@ const Home = ({ navigation }) => {
               DadoExtraPet={mockPet.DadoExtraPet}
               ImgPet={mockPet.ImgPet}
             />
-          ) : //TODO: Botar animação de loading enquanto carrega info
-          user && user.uid ? (
-            <RegisterNewPet />
           ) : (
+            // <RegisterNewPet />
             <Text>Você ainda não cadastrou nenhum pet!</Text>
           )}
         </ScrollView>
