@@ -34,13 +34,8 @@ export const createNote = async (
         const docRef = await addDoc(collection(db, "notes"), noteData);
         noteData.id = docRef.id;
 
-        await updateDoc(docRef, {
-            id: docRef.id
-            });
-
-
-        console.log("Nota criada, id: ", docRef.id);
-        console.log("Nota criada com sucesso");
+        await updateDoc(docRef, { id: docRef.id });
+        console.log(`Nota ${docRef.id} criada com sucesso`);
     } catch (error) {
         console.error('Erro ao criar nota: ', error);
     }
@@ -55,7 +50,8 @@ export const editNote = async (noteId: string, newNote: Note): Promise<boolean> 
       await updateDoc(noteRef, {
         title: newNote.title,
         content: newNote.content,
-        completedAt: newNote.completedAt
+        completedAt: newNote.completedAt,
+        dueDate: newNote.dueDate
       });
       console.log("Nota atualizada com sucesso");
       return true;
