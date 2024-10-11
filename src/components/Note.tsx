@@ -19,13 +19,19 @@ const mock = {
   color: "#fffbe0"
 };
 
+type NoteFilters = {
+    dog: boolean;
+    cat: boolean;
+    completed: boolean;
+};
+
 // USUARIO POSSUI NOTA? (OK)
 // SE SIM EXIBIR AS NOTAS (OK)
 // SE NAO, TELA "aDICIONE NOVAS NOTAS" (OK)
   
 // cada nota:
 // editavel (OK)
-// marcada como completada (X)
+// marcada como completada (OK)
 // deletavel (OK)
 // (talvez: possibilidade de selecionar e (deletar | concluir)) [OK]
 // botao de criar novas notas (OK)
@@ -43,8 +49,11 @@ const NoteUI = () => {
   // const [editingNotes, setEditingNotes] = useState<{ [key: string]: { title: string, text: string } }>({});
   const [editingNotes, setEditingNotes] = useState<{ [key: string]: Note }>({});
 
-  const [dogChecked, setDogChecked] = useState(false);
-  const [catChecked, setCatChecked] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<NoteFilters>({
+    dog: false,
+    cat: false,
+    completed:false
+  });
 
   const [visible, setVisible] = useState(false);
   const showModal = () => setVisible(true);
@@ -126,9 +135,10 @@ const NoteUI = () => {
       const pet = pets.find(i => i.id === currentEditingNote.petId);
       console.log("pet(",index,"): ",pet);
 
-      if (!(dogChecked && catChecked)){
-          if (dogChecked && pet?.type !== "dog") return null;
-          if (catChecked && pet?.type !== "cat") return null;
+      if (!(selectedFilters.dog && selectedFilters.cat && selectedFilters.completed)){
+          if (selectedFilters.dog && pet?.type !== "dog") return null;
+          if (selectedFilters.cat && pet?.type !== "cat") return null;
+          if (selectedFilters.completed && note.completedAt === null) return null;
       }
 
       const isSelectedNote = selectedNoteIds.includes(note.id);
@@ -140,7 +150,7 @@ const NoteUI = () => {
             style={[
                 styles.noteContainer,
                 isSelectedNote && styles.selectedNoteContainer,
-                note.completedAt != null && styles.completedCoteContainer]}
+                note.completedAt != null && styles.completedNoteContainer]}
             onTouchEnd={() => setSelectedNoteIds((prev) => 
                 isSelectedNote 
                 ? prev.filter(id => note.id !== id)
@@ -216,19 +226,29 @@ const NoteUI = () => {
     <View style={styles.selectContainer}>
       <Chip
         icon="cat"
-        style={[styles.chip, catChecked ? styles.selectedChip : {}]}
-        textStyle={catChecked ? {} : styles.unselectedText}
-        onPress={() => setCatChecked(!catChecked)}
+        style={[styles.chip, selectedFilters.cat ? styles.selectedChip : {}]}
+        textStyle={selectedFilters.cat ? {} : styles.unselectedText}
+        onPress={() => setSelectedFilters((prev) => ({...prev, cat:!prev.cat}))}
       >
         Gato
       </Chip>
       <Chip
         icon="dog"
-        style={[styles.chip, dogChecked ? styles.selectedChip : {}]}
-        textStyle={dogChecked ? {} : styles.unselectedText}
-        onPress={() => setDogChecked(!dogChecked)}
+        style={[styles.chip, selectedFilters.dog ? styles.selectedChip : {}]}
+        textStyle={selectedFilters.dog ? {} : styles.unselectedText}
+        onPress={() => setSelectedFilters((prev) => ({...prev, dog:!prev.dog}))}
       >
         Cachorro
+      </Chip>
+
+      {/*alterar o icone*/}
+      <Chip
+        icon="dog"
+        style={[styles.chip, selectedFilters.completed ? styles.selectedChip : {}]}
+        textStyle={selectedFilters.completed ? {} : styles.unselectedText}
+        onPress={() => setSelectedFilters((prev) => ({...prev, completed:!prev.completed}))}
+      >
+        Completado
       </Chip>
     </View>
   );
@@ -400,7 +420,7 @@ const styles = StyleSheet.create({
       borderColor: "#007aff",
       borderWidth: 2
   },
-  completedCoteContainer: {
+  completedNoteContainer: {
     borderColor: "#0f0",
     borderWidth: 2
   }
