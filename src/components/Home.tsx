@@ -19,23 +19,21 @@ const Home = ({ navigation }) => {
   const theme = useTheme();
 
   const [state, setState] = useState({ open: false });
-  const onStateChange = ({ open }) => setState({ open });
-  const { open } = state;
   const [username, setUsername] = useState("");
   const [ownsPet, setOwnsPet] = useState(false);
 
   useEffect(() => {
     const fetchUserName = async () => {
+      setIsLoading(true);
       try {
         if (user) {
           console.log("Current user UID:", user.uid);
           const docRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            console.log(docSnap.data());
+            console.log("data:", docSnap.data());
             setUsername(docSnap.data().name);
             setOwnsPet(docSnap.data().ownsPet);
-            console.log("has pet? ", docSnap.data().ownsPet);
           } else {
             console.log("Sem doc!");
           }
@@ -71,6 +69,9 @@ const Home = ({ navigation }) => {
               DadoExtraPet={mockPet.DadoExtraPet}
               ImgPet={mockPet.ImgPet}
             />
+          ) : //TODO: Botar animação de loading enquanto carrega info
+          user && user.uid ? (
+            <RegisterNewPet />
           ) : (
             <Text>Você ainda não cadastrou nenhum pet!</Text>
           )}

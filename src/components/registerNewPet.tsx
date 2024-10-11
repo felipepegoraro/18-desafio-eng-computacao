@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { auth } from "../firebaseConfig"; //db
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -14,17 +15,33 @@ import {
   Avatar,
   IconButton
 } from "react-native-paper";
+import type { Pet } from '../firestore/createPets';
+import { createPet } from '../firestore/createPets';
 import * as ImagePicker from "expo-image-picker";
 
-const RegisterNewPet = ({ userId }) => {
-  const [name, setName] = useState("");
-  const [breed, setBreed] = useState("");
-  const [gender, setGender] = useState("");
-  const [weight, setWeight] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [notes, setNotes] = useState("");
-  const [type, setType] = useState("DOG");
-  const [image, setImage] = useState(null);
+const RegisterNewPet = () => {
+  const user = auth.currentUser;
+
+  const [pet, setPet] = useState<Pet>({
+    name: "",
+    type: "dog",
+    breed: "",
+    gender: "macho",
+    weight: 0.0,
+    birthDate: new Date(),
+    notes: "",
+    image: ""
+  } as Pet);
+
+  const [data, setData] = useState("");
+
+  const isValidDate = (dataStr: string): boolean => {
+        const regex = /^\d{2}-\d{2}-\d{4}$/;
+        if (!regex.test(dataStr)) return false;
+        const [d, m, y] = dataStr.split('-').map(Number);
+        const data = new Date(y, m-1, d);
+        return data.getDate() === d && data.getMonth() === m - 1 && data.getFullYear() === y;
+    }
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -34,22 +51,22 @@ const RegisterNewPet = ({ userId }) => {
       quality: 1
     });
 
-    if (!result.canceled) {
-      setImage(result.uri);
-    }
+    if (!result.canceled && result.assets.length > 0)
+        setPet((prev) => ({ ...prev, image: result.assets[0].uri }));
   };
 
   const handleSubmit = async () => {
-    const newPet = {
-      userId,
-      name,
-      type,
-      breed,
-      gender,
-      weight: Number(weight),
-      birthDate: new Date(birthDate),
-      notes: notes || undefined
-    };
+    if (pet && user) {
+    console.log(user.uid);
+      const newPet = {
+        ...pet,
+        userId: user.uid,
+        birthDate: new Date(data),
+      } as Pet;
+
+      await createPet(newPet);
+      console.log("pet criado com sucesso: \n\t", newPet);
+    }
   };
 
   return (
@@ -63,7 +80,7 @@ const RegisterNewPet = ({ userId }) => {
             size={100}
             source={{
               uri:
-                image ||
+                pet.image ||
                 "https://cdn-icons-png.flaticon.com/512/5094/5094257.png"
             }}
           />
@@ -73,16 +90,16 @@ const RegisterNewPet = ({ userId }) => {
         <TextInput
           label="Nome do Pet"
           mode="outlined"
-          value={name}
-          onChangeText={setName}
+          value={pet.name}
+          onChangeText={(text) => setPet((prev) => ({ ...prev, name: text }))}
           style={styles.input}
         />
 
         <View style={styles.radioGroup}>
           <Text style={styles.radioLabel}>Espécie:</Text>
           <RadioButton.Group
-            onValueChange={(value) => setType(value)}
-            value={type}
+            onValueChange={(value) => setPet((prev) => ({ ...prev, type: value as "dog" | "cat"}))}
+            value={pet.type}
           >
             <View style={styles.radioRow}>
               <RadioButton value="dog" />
@@ -96,16 +113,16 @@ const RegisterNewPet = ({ userId }) => {
         <TextInput
           label="Raça"
           mode="outlined"
-          value={breed}
-          onChangeText={setBreed}
+          value={pet.breed}
+          onChangeText={(text) => setPet((prev) => ({ ...prev, breed: text }))}
           style={styles.input}
         />
 
         <View style={styles.radioGroup}>
           <Text style={styles.radioLabel}>Gênero:</Text>
           <RadioButton.Group
-            onValueChange={(value) => setGender(value)}
-            value={gender}
+            onValueChange={(value) => setPet((prev) => ({ ...prev, gender: value }))}
+            value={pet.gender}
           >
             <View style={styles.radioRow}>
               <RadioButton value="Macho" />
@@ -120,8 +137,8 @@ const RegisterNewPet = ({ userId }) => {
           label="Peso (kg)"
           mode="outlined"
           keyboardType="numeric"
-          value={weight}
-          onChangeText={setWeight}
+          value={pet.weight.toString()}
+          onChangeText={(w) => setPet((prev) => ({ ...prev, weight: parseInt(w) || 0 }))}
           style={styles.input}
         />
 
@@ -129,9 +146,15 @@ const RegisterNewPet = ({ userId }) => {
           label="Data de Nascimento"
           mode="outlined"
           placeholder="DD-MM-YYYY"
-          value={birthDate}
-          onChangeText={setBirthDate}
+          value={data}
+          onChangeText={(text: string) => setData(text)}
           style={styles.input}
+          onBlur={() => {
+                if (!isValidDate(data)){
+                    alert("data inválida");
+                    setData("");
+                }
+          }}
         />
 
         <TextInput
@@ -139,8 +162,8 @@ const RegisterNewPet = ({ userId }) => {
           mode="outlined"
           multiline
           numberOfLines={4}
-          value={notes}
-          onChangeText={setNotes}
+          value={pet.notes}
+          onChangeText={(text) => setPet((prev) => ({ ...prev, notes: text }))}
           style={styles.input}
         />
 

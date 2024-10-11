@@ -1,20 +1,22 @@
-import { doc, setDoc } from 'firebase/firestore';
+import { addDoc, setDoc, collection } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
 export interface Pet {
+  id: string;
   userId: string;
   name: string;
-  type: "DOG" | "CAT";
+  type: "dog" | "cat";  // minusculo pq firebase deixou assim
   breed: string;
   gender: string;
   weight: number;
   birthDate: Date;
   notes?: string;
+  image?: string;
 }
 
-export const createPet = async (petId: string, pet: Pet): Promise<void> => {
+export const createPet = async (pet: Pet): Promise<void> => {
   try {
-    await setDoc(doc(db, 'pets', petId), {
+    const docRef = await addDoc(collection(db, 'pets'), {
       userId: pet.userId,
       name: pet.name,
       type: pet.type,
@@ -22,10 +24,16 @@ export const createPet = async (petId: string, pet: Pet): Promise<void> => {
       gender: pet.gender,
       weight: pet.weight,
       birthDate: pet.birthDate,
-      notes: pet.notes,
-    } as Pet);
-    console.log('Pet criado com sucesso!');
+      notes: pet.notes || null,
+      image: pet.image || ""
+    });
+
+    const petWithId: Pet = { ...pet, id: docRef.id };
+    await setDoc(docRef, petWithId);
+
+    console.log('Pet criado com sucesso!', petWithId);
   } catch (error) {
-    console.error('Erro ao criar pet: ', error);
+    console.log('Erro ao criar pet: ', error);
   }
 };
+

@@ -1,64 +1,69 @@
 import { auth } from "../firebaseConfig"; //db
 import type { Note } from "../firestore/modelNotes";
-import { createNote, editNote } from "../firestore/modelNotes";
+import {
+  createNote,
+  editNote,
+  deleteNote,
+  markAsCompleted,
+} from "../firestore/modelNotes";
 import { useState, useEffect } from "react";
 import { Picker } from "@react-native-picker/picker";
 import { getUserNotes, getUserPets } from "../firestore/createUsers";
 import type { Pet } from "../firestore/createPets";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 
-// temporario:
-import registerNewPet from "../components/registerNewPet";
+const formatDate = (date: Date | null): string => {
+  if (!date) return "Selecione a data";
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
 
-import {
-  ScrollView,
-  View,
-  StyleSheet,
-  TextInput,
-  KeyboardAvoidingView
-} from "react-native";
-import { Chip, FAB, Portal, Button, Modal, Text } from "react-native-paper";
+import { ScrollView, View, StyleSheet, TextInput } from "react-native";
+import { Chip, FAB, Portal, Button, Modal } from "react-native-paper";
 import React from "react";
 
 const mock = {
-  color: "#fffbe0"
+  color: "#fffbe0",
 };
 
-// usuario possui nota? (OK)
-// se sim exibir as notas (OK)
-// se nao, tela "Adicione novas notas" (+- né)
-// cada nota:
-// editavel (OK)
-// marcada como completada (X)
-// deletavel (X)
-// (talvez: possibilidade de selecionar e (deletar | concluir))
-// botao de criar novas notas (X)
+type NoteFilters = {
+  dog: boolean;
+  cat: boolean;
+  completed: boolean;
+};
 
 const NoteUI = () => {
-  const [state, setState] = useState({ open: false });
-  const onStateChange = ({ open }) => setState({ open });
-  const { open } = state;
-
+  console.log("NOTEUI: renderizado de novo"); // TODO: USAR USEREF PARA NAO ATUALIZAR SEMPRE.
   const user = auth.currentUser;
+
   const [notes, setNotes] = useState<Note[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
+
   const [selectedPetId, setSelectedPetId] = useState<string>("");
+  const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
 
   // overengineering???? eu nao sei!
-  // const [editingNotes, setEditingNotes] = useState<{ [key: string]: { title: string, text: string } }>({});
   const [editingNotes, setEditingNotes] = useState<{ [key: string]: Note }>({});
+  const [showDataPicker, setShowDataPicker] = useState<{ [key: string]: boolean; }>({});
 
-  const [dogChecked, setDogChecked] = useState(false);
-  const [catChecked, setCatChecked] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<NoteFilters>({
+    dog: false,
+    cat: false,
+    completed: false,
+  });
 
-  const [visible, setVisible] = useState(false);
-  const showModal = () => setVisible(true);
-  const hideModal = () => setVisible(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
   const containerStyle = {
     backgroundColor: "white",
     borderRadius: 5,
     padding: 20,
     marginLeft: 30,
-    marginRight: 30
+    marginRight: 30,
   };
 
   useEffect(() => {
@@ -87,7 +92,7 @@ const NoteUI = () => {
         editingNotes["new"].content,
         null
       );
-      hideModal();
+      setModalVisible(false);
       resetNoteFields();
       refreshUserNotes();
     } else {
@@ -98,22 +103,22 @@ const NoteUI = () => {
   // export const editNote = async (noteId: string, newNote: Note): Promise<boolean>
   const handleEditNote = (
     id: string,
-    field: "title" | "content",
-    value: string
+    field: "title" | "content" | "dueDate",
+    value: string | Date
   ) => {
     setEditingNotes((prev) => ({
       ...prev,
       [id]: {
         ...prev[id],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
   const resetNoteFields = () => {
     setEditingNotes((prevState) => ({
       ...prevState,
-      new: {} as Note
+      new: {} as Note,
     }));
     setSelectedPetId("");
   };
@@ -123,19 +128,38 @@ const NoteUI = () => {
     if (userNotes) setNotes(userNotes);
   };
 
-  const renderNoteEditor = (note: Note, index: number) => {
-    console.log("renderizando:", note.id);
-    const associatedPet = pets.find((pet) => pet.name === note.petId);
+  const renderNoteEditor = (note: Note, _: number) => {
+    const currentEditingNote = {
+      ...note,
+      ...(editingNotes[note.id] || {}),
+    };
 
-    if (!(catChecked && dogChecked)) {
-      if (catChecked && associatedPet?.type !== "CAT") return null;
-      if (dogChecked && associatedPet?.type !== "DOG") return null;
+    const pet = pets.find((i) => i.id === currentEditingNote.petId);
+
+    if (!(selectedFilters.dog && selectedFilters.cat && selectedFilters.completed)){
+      if (selectedFilters.dog && pet?.type !== "dog") return null;
+      if (selectedFilters.cat && pet?.type !== "cat") return null;
+      if (selectedFilters.completed && note.completedAt === null) return null;
     }
 
-    const currentEditingNote = editingNotes[note.id] || { ...note };
+    const isSelectedNote = selectedNoteIds.includes(note.id);
 
     return (
-      <View key={index} style={styles.noteContainer}>
+      <View
+        key={note.id}
+        style={[
+          styles.noteContainer,
+          isSelectedNote && styles.selectedNoteContainer,
+          note.completedAt != null && styles.completedNoteContainer,
+        ]}
+        onTouchEnd={() =>
+          setSelectedNoteIds((prev) =>
+            isSelectedNote
+              ? prev.filter((id) => note.id !== id)
+              : [...prev, note.id]
+          )
+        }
+      >
         <TextInput
           style={styles.title}
           editable={true}
@@ -151,6 +175,30 @@ const NoteUI = () => {
           autoFocus={false}
           editable={true}
         />
+        <View style={{ padding: 20 }}>
+          <Button
+            onPress={() =>
+              setShowDataPicker((prev) => ({ ...prev, [note.id]: true }))
+            }
+          >
+            {currentEditingNote.dueDate
+              ? formatDate(currentEditingNote.dueDate)
+              : "Selecione a data"}
+          </Button>
+
+          {showDataPicker[note.id] && (
+            <DateTimePicker
+              value={currentEditingNote.dueDate || new Date()}
+              mode="date"
+              display="default"
+              onChange={(_: DateTimePickerEvent, selectedDate?: Date) => {
+                setShowDataPicker((prev) => ({ ...prev, [note.id]: false }));
+                if (selectedDate)
+                  handleEditNote(note.id, "dueDate", selectedDate);
+              }}
+            />
+          )}
+        </View>
       </View>
     );
   };
@@ -165,11 +213,13 @@ const NoteUI = () => {
     <>
       <Picker
         selectedValue={selectedPetId}
-        onValueChange={(itemValue: string) => setSelectedPetId(itemValue)}
+        onValueChange={(itemValue: string) => {
+          setSelectedPetId(itemValue);
+        }}
       >
         <Picker.Item label="Selecione um pet" value={""} />
         {pets.map((pet) => (
-          <Picker.Item key={pet.name} label={pet.name} value={pet.name} />
+          <Picker.Item key={pet.id} label={pet.name} value={pet.id} />
         ))}
       </Picker>
 
@@ -188,11 +238,11 @@ const NoteUI = () => {
           placeholder="Escreva sua nota aqui..."
         />
         <Button
-          style={styles.submitButton}
+          style={styles.submitSaveButton}
           mode="contained"
           onPress={handleCreateNote}
         >
-          Salvar Nota
+          Criar Nota
         </Button>
       </View>
     </>
@@ -202,19 +252,41 @@ const NoteUI = () => {
     <View style={styles.selectContainer}>
       <Chip
         icon="cat"
-        style={[styles.chip, catChecked ? styles.selectedChip : {}]}
-        textStyle={catChecked ? {} : styles.unselectedText}
-        onPress={() => setCatChecked(!catChecked)}
+        style={[styles.chip, selectedFilters.cat ? styles.selectedChip : {}]}
+        textStyle={selectedFilters.cat ? {} : styles.unselectedText}
+        onPress={() =>
+          setSelectedFilters((prev) => ({ ...prev, cat: !prev.cat }))
+        }
       >
         Gato
       </Chip>
       <Chip
         icon="dog"
-        style={[styles.chip, dogChecked ? styles.selectedChip : {}]}
-        textStyle={dogChecked ? {} : styles.unselectedText}
-        onPress={() => setDogChecked(!dogChecked)}
+        style={[styles.chip, selectedFilters.dog ? styles.selectedChip : {}]}
+        textStyle={selectedFilters.dog ? {} : styles.unselectedText}
+        onPress={() =>
+          setSelectedFilters((prev) => ({ ...prev, dog: !prev.dog }))
+        }
       >
         Cachorro
+      </Chip>
+
+      {/*alterar o icone*/}
+      <Chip
+        icon="dog"
+        style={[
+          styles.chip,
+          selectedFilters.completed ? styles.selectedChip : {},
+        ]}
+        textStyle={selectedFilters.completed ? {} : styles.unselectedText}
+        onPress={() =>
+          setSelectedFilters((prev) => ({
+            ...prev,
+            completed: !prev.completed,
+          }))
+        }
+      >
+        Completado
       </Chip>
     </View>
   );
@@ -224,10 +296,10 @@ const NoteUI = () => {
       const editedNote: Note = {
         ...note,
         title: editingNotes[note.id]?.title || note.title,
-        content: editingNotes[note.id]?.content || note.content
+        content: editingNotes[note.id]?.content || note.content,
+        dueDate: editingNotes[note.id]?.dueDate || note.dueDate,
       };
 
-      console.log("editado: ", editedNote);
       return editNote(note.id, editedNote);
     });
 
@@ -239,32 +311,76 @@ const NoteUI = () => {
     }
   };
 
+  const handleDeleteNotes = async () => {
+    const promises = selectedNoteIds.map(async (id: string) => {
+      console.log("DELETAR ", id);
+      await deleteNote(id);
+    });
+
+    try {
+      await Promise.all(promises);
+      setSelectedNoteIds([]);
+      await refreshUserNotes();
+    } catch (error) {
+      console.log("erro ao deletar notas selecionadas:  ", error);
+    }
+  };
+
+  const handleCompletedNotes = async () => {
+    const promises = selectedNoteIds.map(async (id: string) => {
+      console.log("concluida: ", id);
+      await markAsCompleted(id);
+    });
+
+    try {
+      await Promise.all(promises);
+      setSelectedNoteIds([]);
+      await refreshUserNotes();
+    } catch (error) {
+      console.log("erro ao concluir notas: ", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
-        {/*antes: <KeyboardAvoidingView behavior="padding"> */}
         {renderPetSelection()}
         {notes.length > 0 ? renderNoteList() : renderCreateNoteSection()}
         <Button
-          style={styles.submitButton}
+          style={styles.submitSaveButton}
           mode="contained"
           onPress={handleSaveNotes}
         >
           Salvar Notas
         </Button>
-        {/*testando reegisterNewPet(...)*/}
+
+        <Button
+          style={styles.submitDeleteButton}
+          mode="contained"
+          onPress={handleDeleteNotes}
+        >
+          Apagar Notas
+        </Button>
+
+        <Button
+          style={styles.submitCompletedButton}
+          mode="contained"
+          onPress={handleCompletedNotes}
+        >
+          Concluir Notas
+        </Button>
       </View>
 
       <Portal>
         <Modal
-          visible={visible}
-          onDismiss={hideModal}
+          visible={modalVisible}
+          onDismiss={()=>setModalVisible(false)}
           contentContainerStyle={containerStyle}
         >
           {renderCreateNoteSection()}
         </Modal>
 
-        <FAB style={styles.fab} visible icon="plus" onPress={showModal} />
+        <FAB style={styles.fab} visible icon="plus" onPress={()=>setModalVisible(true)} />
       </Portal>
     </View>
   );
@@ -273,11 +389,11 @@ const NoteUI = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
   },
   contentContainer: {
     flex: 1,
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
   },
 
   noteContainer: {
@@ -286,13 +402,13 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     marginBottom: 20,
-    elevation: 1
+    elevation: 1,
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 10
+    marginBottom: 10,
   },
   textInput: {
     // backgroundColor: "#fffbe0", // OU SETA TUDO DESSA COR AQUI MESMO E JA ERA
@@ -301,35 +417,52 @@ const styles = StyleSheet.create({
     color: "#333",
     textAlignVertical: "top",
     minHeight: 200,
-    borderWidth: 0
+    borderWidth: 0,
   },
 
   selectContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 20
+    marginBottom: 20,
   },
   fab: {
     position: "absolute",
     margin: 16,
     right: 0,
-    bottom: 0
+    bottom: 0,
   },
   chip: {
     marginHorizontal: 10,
     borderRadius: 20,
-    backgroundColor: "#f0f0f0"
+    backgroundColor: "#f0f0f0",
   },
   selectedChip: {
-    backgroundColor: "#ebdefa"
+    backgroundColor: "#ebdefa",
   },
   unselectedText: {
-    color: "#999999"
+    color: "#999999",
   },
-  submitButton: {
+  submitSaveButton: {
     marginTop: 20,
-    marginBottom: 10
-  }
+  },
+  submitDeleteButton: {
+    marginTop: 10,
+    backgroundColor: "#f00",
+  },
+  submitCompletedButton: {
+    marginTop: 10,
+    backgroundColor: "#0f0",
+  },
+  // teste
+  selectedNoteContainer: {
+    // backgroundColor: "#d0e4ff",
+    borderColor: "#007aff",
+    borderWidth: 2,
+  },
+  completedNoteContainer: {
+    borderColor: "#0f0",
+    borderWidth: 2,
+  },
 });
 
 export default NoteUI;
