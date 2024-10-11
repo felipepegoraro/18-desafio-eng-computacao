@@ -1,7 +1,7 @@
 import { auth } from "../firebaseConfig"; //db
 import type { Note } from "../firestore/modelNotes";
-import { createNote, editNote } from "../firestore/modelNotes";
-import { useState, useEffect, useMemo } from "react";
+import { createNote, editNote, deleteNote, markAsCompleted } from "../firestore/modelNotes";
+import { useState, useEffect } from "react";
 import { Picker } from "@react-native-picker/picker";
 import { getUserNotes, getUserPets } from "../firestore/createUsers";
 import type { Pet } from "../firestore/createPets";
@@ -19,21 +19,25 @@ const mock = {
   color: "#fffbe0"
 };
 
-// usuario possui nota? (OK)
-// se sim exibir as notas (OK)
-// se nao, tela "Adicione novas notas" (+- né)
+// USUARIO POSSUI NOTA? (OK)
+// SE SIM EXIBIR AS NOTAS (OK)
+// SE NAO, TELA "aDICIONE NOVAS NOTAS" (OK)
+  
 // cada nota:
 // editavel (OK)
 // marcada como completada (X)
-// deletavel (X)
-// (talvez: possibilidade de selecionar e (deletar | concluir))
-// botao de criar novas notas (X)
+// deletavel (OK)
+// (talvez: possibilidade de selecionar e (deletar | concluir)) [OK]
+// botao de criar novas notas (OK)
 
 const NoteUI = () => {
   const user = auth.currentUser;
+
   const [notes, setNotes] = useState<Note[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
+
   const [selectedPetId, setSelectedPetId] = useState<string>("");
+  const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
 
   // overengineering???? eu nao sei!
   // const [editingNotes, setEditingNotes] = useState<{ [key: string]: { title: string, text: string } }>({});
@@ -45,6 +49,7 @@ const NoteUI = () => {
   const [visible, setVisible] = useState(false);
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
+
   const containerStyle = {
     backgroundColor: "white",
     borderRadius: 5,
@@ -126,8 +131,23 @@ const NoteUI = () => {
           if (catChecked && pet?.type !== "cat") return null;
       }
 
+      const isSelectedNote = selectedNoteIds.includes(note.id);
+      console.log(selectedNoteIds);
+
       return (
-        <View key={note.id} style={styles.noteContainer}>
+        <View 
+            key={note.id} 
+            style={[
+                styles.noteContainer,
+                isSelectedNote && styles.selectedNoteContainer,
+                note.completedAt != null && styles.completedCoteContainer]}
+            onTouchEnd={() => setSelectedNoteIds((prev) => 
+                isSelectedNote 
+                ? prev.filter(id => note.id !== id)
+                : [...prev, note.id]
+            )}
+            >
+
           <TextInput
             style={styles.title}
             editable={true}
@@ -152,14 +172,6 @@ const NoteUI = () => {
       {notes.map((note, index) => renderNoteEditor(note, index))}
     </ScrollView>
   );
-
-    pets.map((i: Pet) => {
-        console.log("name(",i.name,") id(",i.id,")");
-    })
-
-    notes.map((i: Note) => {
-        console.log("id(",i.id,") petId(", i.petId,")");
-    });
 
   const renderCreateNoteSection = () => (
     <>
@@ -190,7 +202,7 @@ const NoteUI = () => {
           placeholder="Escreva sua nota aqui..."
         />
         <Button
-          style={styles.submitButton}
+          style={styles.submitSaveButton}
           mode="contained"
           onPress={handleCreateNote}
         >
@@ -240,20 +252,64 @@ const NoteUI = () => {
     }
   };
 
+  const handleDeleteNotes = async () => {
+    const promises = selectedNoteIds.map(async (id: string) => {
+        console.log("DELETAR ", id);
+        await deleteNote(id);
+    })
+
+    try {
+        await Promise.all(promises);
+        setSelectedNoteIds([]);
+        await refreshUserNotes();
+    } catch(error){
+        console.log("erro ao deletar notas selecionadas:  ", error);
+    }
+  }
+
+  const handleCompletedNotes = async () => {
+        const promises = selectedNoteIds.map(async (id: string) => {
+            console.log("concluida: ", id);
+            await markAsCompleted(id);
+        })
+
+        try {
+            await Promise.all(promises);
+            setSelectedNoteIds([]);
+            await refreshUserNotes();
+        } catch(error){
+            console.log("erro ao concluir notas: ", error);
+        }
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
-        {/*antes: <KeyboardAvoidingView behavior="padding"> */}
         {renderPetSelection()}
         {notes.length > 0 ? renderNoteList() : renderCreateNoteSection()}
         <Button
-          style={styles.submitButton}
+          style={styles.submitSaveButton}
           mode="contained"
           onPress={handleSaveNotes}
         >
           Salvar Notas
         </Button>
-        {/*testando reegisterNewPet(...)*/}
+
+        <Button
+          style={styles.submitDeleteButton}
+          mode="contained"
+          onPress={handleDeleteNotes}
+        >
+          Apagar Notas
+        </Button>
+
+        <Button
+          style={styles.submitCompletedButton}
+          mode="contained"
+          onPress={handleCompletedNotes}
+        >
+          Concluir Notas
+        </Button>
       </View>
 
       <Portal>
@@ -327,9 +383,26 @@ const styles = StyleSheet.create({
   unselectedText: {
     color: "#999999"
   },
-  submitButton: {
+  submitSaveButton: {
     marginTop: 20,
-    marginBottom: 10
+  },
+  submitDeleteButton: {
+    marginTop: 10,
+    backgroundColor: "#f00"
+  },
+  submitCompletedButton: {
+    marginTop: 10,
+    backgroundColor: "#0f0"
+  },
+  // teste
+  selectedNoteContainer: {
+      // backgroundColor: "#d0e4ff",
+      borderColor: "#007aff",
+      borderWidth: 2
+  },
+  completedCoteContainer: {
+    borderColor: "#0f0",
+    borderWidth: 2
   }
 });
 

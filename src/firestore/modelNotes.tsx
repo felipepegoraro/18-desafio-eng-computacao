@@ -88,8 +88,10 @@ export const markAsCompleted = async (noteId: string) => {
         const noteRef = doc(db, "notes", noteId);
         const noteSnap = await getDoc(noteRef);
 
-        if (noteSnap.exists()) await updateDoc(noteRef, { completedAt: new Date() });
-        console.log("Nota marcada como completada.");
+        if (noteSnap.exists()){
+            await updateDoc(noteRef, { completedAt: new Date() });
+            console.log("Nota marcada como completada.");
+        }
 
     } catch(error){
         console.log("Erro ao deletar nota: ", error);
