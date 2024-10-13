@@ -11,6 +11,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Login from "./src/components/Login";
 import Register from "./src/components/Register";
 import Home from "./src/components/Home";
+import Agenda from "./src/components/Agenda";
 import Note from "./src/components/Note";
 import { PaperProvider } from "react-native-paper";
 import RegisterNewPet from "./src/components/registerNewPet";
@@ -45,6 +46,7 @@ export default function App() {
           */}
             <Drawer.Screen name="Meu Perfil" component={Home} />
             <Drawer.Screen name="Meus Pets" component={Home} />
+            <Drawer.Screen name="Agenda" component={Agenda} />
 
             {/* remover dps */}
             <Drawer.Screen name="Nota" component={Note} />

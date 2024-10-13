@@ -10,9 +10,13 @@ import { useState, useEffect } from "react";
 import { Picker } from "@react-native-picker/picker";
 import { getUserNotes, getUserPets } from "../firestore/createUsers";
 import type { Pet } from "../firestore/createPets";
+
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+
+import { ScrollView, View, StyleSheet, TextInput } from "react-native";
+import { Chip, FAB, Portal, Button, Modal } from "react-native-paper";
 
 const formatDate = (date: Date | null): string => {
   if (!date) return "Selecione a data";
@@ -21,10 +25,6 @@ const formatDate = (date: Date | null): string => {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };
-
-import { ScrollView, View, StyleSheet, TextInput } from "react-native";
-import { Chip, FAB, Portal, Button, Modal } from "react-native-paper";
-import React from "react";
 
 const mock = {
   color: "#fffbe0",
@@ -66,10 +66,6 @@ const NoteUI = () => {
     marginRight: 30,
   };
 
-  useEffect(() => {
-    fetchUserData();
-  }, [user]);
-
   const fetchUserData = async () => {
     if (user) {
       const userNotes = await getUserNotes(user.uid);
@@ -78,6 +74,11 @@ const NoteUI = () => {
       if (userPets) setPets(userPets);
     }
   };
+  
+  useEffect(() => {
+    fetchUserData();
+  }, [user]);
+
 
   const handleCreateNote = async () => {
     if (

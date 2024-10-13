@@ -17,15 +17,15 @@ import RegisterNewPet from "./registerNewPet";
 
 const Home = ({ navigation }) => {
   const user = auth.currentUser;
-  const theme = useTheme();
+  // const theme = useTheme();
 
-  const [state, setState] = useState({ open: false });
-  const [username, setUsername] = useState("");
+  // const [state, setState] = useState({ open: false });
+  // const [username, setUsername] = useState("");
   const [ownsPet, setOwnsPet] = useState(false);
 
   useEffect(() => {
     const fetchUserName = async () => {
-      setIsLoading(true);
+      // setIsLoading(true);
       try {
         if (user) {
           console.log("Current user UID:", user.uid);
@@ -33,7 +33,7 @@ const Home = ({ navigation }) => {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             console.log("data:", docSnap.data());
-            setUsername(docSnap.data().name);
+            // setUsername(docSnap.data().name);
             setOwnsPet(docSnap.data().ownsPet);
           } else {
             console.log("Sem doc!");
