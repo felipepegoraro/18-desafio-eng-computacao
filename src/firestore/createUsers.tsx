@@ -41,6 +41,7 @@ export const getUserPets = async (userId: string): Promise<Pet[] | null> => {
                 weight: data.weight,
                 birthDate: data.birthDate.toDate(),
                 notes: data.notes || "",
+                image: data.image || ""
             } as Pet);
         });
 

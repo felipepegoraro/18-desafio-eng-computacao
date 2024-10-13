@@ -1,21 +1,14 @@
 import { useEffect, useState } from "react";
 import { ScrollView, View, StyleSheet } from "react-native";
-import {
-  Card,
-  Text,
-  Provider,
-  Avatar,
-  Button,
-  useTheme
-} from "react-native-paper";
+import { Text, Provider, } from "react-native-paper";
 
 import { db, auth } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
-import PetCard from "./PetCard";
 import RegisterNewPet from "./registerNewPet";
 
 const Home = ({ navigation }) => {
+console.log("HOME");
   const user = auth.currentUser;
   // const theme = useTheme();
 
@@ -48,34 +41,19 @@ const Home = ({ navigation }) => {
     fetchUserName();
   }, [user]);
 
-  // Dados do pet do usuario
-  const mockPet = {
-    PesoPet: "8kg",
-    EspeciePet: "Cachorro",
-    NomePet: "Max",
-    DadoExtraPet: "Golden Retriever",
-    ImgPet:
-      "https://t3.ftcdn.net/jpg/08/08/50/08/360_F_808500839_PbOxOfC4bdGG8ttFazqi7fiziFlqlaSk.jpg"
-  };
+  // "https://t3.ftcdn.net/jpg/08/08/50/08/360_F_808500839_PbOxOfC4bdGG8ttFazqi7fiziFlqlaSk.jpg"
 
   return (
     <Provider>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {ownsPet ? (
-            <RegisterNewPet />
-          ) : //TODO: Botar animação de loading enquanto carrega info
-          user && user.uid ? (
-            <PetCard
-              PesoPet={mockPet.PesoPet}
-              EspeciePet={mockPet.EspeciePet}
-              NomePet={mockPet.NomePet}
-              DadoExtraPet={mockPet.DadoExtraPet}
-              ImgPet={mockPet.ImgPet}
-            />
+          {!ownsPet ? (
+            <View>
+                <Text>Ei! Parece que você não tem nenhum pet.</Text>
+                <RegisterNewPet />
+            </View>
           ) : (
-            // <RegisterNewPet />
-            <Text>Você ainda não cadastrou nenhum pet!</Text>
+              <Text>tela inicial/escrever qualquer coisa etc</Text>
           )}
         </ScrollView>
       </View>

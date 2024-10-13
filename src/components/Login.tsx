@@ -1,5 +1,5 @@
 // src/components/Login.js
-import React, { useState, useEffect } from "react";
+import  { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import {
   TextInput,
@@ -12,6 +12,8 @@ import { auth } from "../firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 const Login = ({ navigation }) => {
+    console.log("LOGIN");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -20,16 +22,16 @@ const Login = ({ navigation }) => {
   const handleLogin = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
+        console.log("LOGADO");
         setErrorMessage("");
       })
       .catch((error) => {
+        console.log("LOGADO:",  error.message);
         setErrorMessage(error.message);
       });
   };
 
-  const hasErrors = () => {
-    return email === "" || password === "";
-  };
+  const hasErrors = () => email === "" || password === "";
 
   return (
     <View style={styles.container}>
@@ -41,13 +43,12 @@ const Login = ({ navigation }) => {
         label="Email"
         value={email}
         onChangeText={setEmail}
-        style={styles.input}
         mode="outlined"
         keyboardType="email-address"
         autoCapitalize="none"
         left={<TextInput.Icon icon="email" />}
       />
-      <HelperText type="error" visible={!email && errorMessage}>
+      <HelperText type="error" visible={(!email || errorMessage != "")}>
         {errorMessage}
       </HelperText>
 
@@ -55,12 +56,11 @@ const Login = ({ navigation }) => {
         label="Senha"
         value={password}
         onChangeText={setPassword}
-        style={styles.input}
         mode="outlined"
         secureTextEntry
         left={<TextInput.Icon icon="lock" />}
       />
-      <HelperText type="error" visible={errorMessage}>
+      <HelperText type="error" visible={errorMessage != ""}>
         {errorMessage}
       </HelperText>
 

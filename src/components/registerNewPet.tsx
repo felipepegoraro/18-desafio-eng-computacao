@@ -1,5 +1,5 @@
 import { auth } from "../firebaseConfig"; //db
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -56,18 +56,34 @@ const RegisterNewPet = () => {
   };
 
   const handleSubmit = async () => {
+    // TODO: pet vazio sendo criado, rmeover.
     if (pet && user) {
-    console.log(user.uid);
+      console.log(user.uid);
       const newPet = {
         ...pet,
         userId: user.uid,
         birthDate: new Date(data),
       } as Pet;
 
+      setPet({
+          id: "",
+          name: "",
+          type: "dog",
+          breed: "",
+          gender: "macho",
+          weight: 0.0,
+          birthDate: new Date(),
+          notes: "",
+          image: ""
+        } as Pet); 
+
+        setData("");
+
       await createPet(newPet);
       console.log("pet criado com sucesso: \n\t", newPet);
+      // TODO: POPUP dizendo "pet criado com sucesso".
     }
-  };
+};
 
   return (
     <KeyboardAvoidingView

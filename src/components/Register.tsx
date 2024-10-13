@@ -70,7 +70,7 @@ const Register = ({ navigation }) => {
         style={styles.input}
         left={<TextInput.Icon icon="email" />}
       />
-      <HelperText type="error" visible={!email && errorMessage}>
+      <HelperText type="error" visible={(email == "" || errorMessage != "")}>
         {errorMessage}
       </HelperText>
 
@@ -83,7 +83,7 @@ const Register = ({ navigation }) => {
         style={styles.input}
         left={<TextInput.Icon icon="lock" />}
       />
-      <HelperText type="error" visible={errorMessage}>
+      <HelperText type="error" visible={errorMessage != ""}>
         {errorMessage}
       </HelperText>
 
