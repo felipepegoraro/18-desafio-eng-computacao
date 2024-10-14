@@ -1,22 +1,33 @@
 import { auth } from "../firebaseConfig"; //db
+
 import type { Note } from "../firestore/modelNotes";
 import {
   createNote,
   editNote,
   deleteNote,
-  markAsCompleted,
+  markAsCompleted
 } from "../firestore/modelNotes";
-import { useState, useEffect } from "react";
-import { Picker } from "@react-native-picker/picker";
+
 import { getUserNotes, getUserPets } from "../firestore/createUsers";
 import type { Pet } from "../firestore/createPets";
 
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
-
+import { useState, useEffect } from "react";
 import { ScrollView, View, StyleSheet, TextInput } from "react-native";
-import { Chip, FAB, Portal, Button, Modal } from "react-native-paper";
+import {
+  Chip,
+  FAB,
+  Portal,
+  Button,
+  Modal,
+  Menu,
+  Icon,
+  IconButton,
+  Text
+} from "react-native-paper";
+import { Picker } from "@react-native-picker/picker";
+import DateTimePicker, {
+  DateTimePickerEvent
+} from "@react-native-community/datetimepicker";
 
 const formatDate = (date: Date | null): string => {
   if (!date) return "Selecione a data";
@@ -27,7 +38,7 @@ const formatDate = (date: Date | null): string => {
 };
 
 const mock = {
-  color: "#fffbe0",
+  color: "#fffbe0"
 };
 
 type NoteFilters = {
@@ -48,23 +59,27 @@ const NoteUI = () => {
 
   // overengineering???? eu nao sei!
   const [editingNotes, setEditingNotes] = useState<{ [key: string]: Note }>({});
-  const [showDataPicker, setShowDataPicker] = useState<{ [key: string]: boolean; }>({});
+  const [showDataPicker, setShowDataPicker] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   const [selectedFilters, setSelectedFilters] = useState<NoteFilters>({
     dog: false,
     cat: false,
-    completed: false,
+    completed: false
   });
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const containerStyle = {
     backgroundColor: "white",
     borderRadius: 5,
     padding: 20,
     marginLeft: 30,
-    marginRight: 30,
+    marginRight: 30
   };
+
+  const [completedCheck, setCompletedCheck] = useState<boolean>(false);
 
   const fetchUserData = async () => {
     if (user) {
@@ -74,11 +89,10 @@ const NoteUI = () => {
       if (userPets) setPets(userPets);
     }
   };
-  
+
   useEffect(() => {
     fetchUserData();
   }, [user]);
-
 
   const handleCreateNote = async () => {
     if (
@@ -101,25 +115,25 @@ const NoteUI = () => {
     }
   };
 
-  // export const editNote = async (noteId: string, newNote: Note): Promise<boolean>
   const handleEditNote = (
     id: string,
     field: "title" | "content" | "dueDate",
     value: string | Date
   ) => {
+    console.log(value);
     setEditingNotes((prev) => ({
       ...prev,
       [id]: {
         ...prev[id],
-        [field]: value,
-      },
+        [field]: value
+      }
     }));
   };
 
   const resetNoteFields = () => {
     setEditingNotes((prevState) => ({
       ...prevState,
-      new: {} as Note,
+      new: {} as Note
     }));
     setSelectedPetId("");
   };
@@ -132,12 +146,14 @@ const NoteUI = () => {
   const renderNoteEditor = (note: Note, _: number) => {
     const currentEditingNote = {
       ...note,
-      ...(editingNotes[note.id] || {}),
+      ...(editingNotes[note.id] || {})
     };
 
     const pet = pets.find((i) => i.id === currentEditingNote.petId);
 
-    if (!(selectedFilters.dog && selectedFilters.cat && selectedFilters.completed)){
+    if (
+      !(selectedFilters.dog && selectedFilters.cat && selectedFilters.completed)
+    ) {
       if (selectedFilters.dog && pet?.type !== "dog") return null;
       if (selectedFilters.cat && pet?.type !== "cat") return null;
       if (selectedFilters.completed && note.completedAt === null) return null;
@@ -145,38 +161,118 @@ const NoteUI = () => {
 
     const isSelectedNote = selectedNoteIds.includes(note.id);
 
+    const getCompletionStatus = (date: Date | null): number => {
+      if (!date) return -1;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const comparison = date.setHours(0, 0, 0, 0) - today.getTime();
+
+      if (comparison < 0) {
+        console.warn("Data passada");
+        return 0;
+      } else if (comparison === 0) {
+        console.warn("Hoje");
+        return 1;
+      } else {
+        console.warn("Data futura");
+        return 2;
+      }
+    };
+
+    const status = getCompletionStatus(note.dueDate);
+    const renderStatusIcon = (note: {
+      completedAt: Date | null;
+      dueDate: Date | null;
+    }) => {
+      if (note.completedAt) {
+        return <Icon source="check-bold" color="green" size={20} />;
+      }
+
+      const status = getCompletionStatus(note.dueDate);
+
+      const iconProps = {
+        source: "clock-time-ten-outline",
+        size: 20
+      };
+
+      switch (status) {
+        case 0:
+          return <Icon {...iconProps} color="red" />;
+        case 1:
+          return <Icon {...iconProps} color="gray" />;
+        case 2:
+          return <Icon {...iconProps} color="green" />;
+        default:
+          return null;
+      }
+    };
+
     return (
       <View
         key={note.id}
         style={[
           styles.noteContainer,
           isSelectedNote && styles.selectedNoteContainer,
-          note.completedAt != null && styles.completedNoteContainer,
+          note.completedAt != null && styles.completedNoteContainer
         ]}
-        onTouchEnd={() =>
-          setSelectedNoteIds((prev) =>
-            isSelectedNote
-              ? prev.filter((id) => note.id !== id)
-              : [...prev, note.id]
-          )
-        }
       >
         <TextInput
           style={styles.title}
           editable={true}
           value={currentEditingNote.title}
           onChangeText={(text) => handleEditNote(note.id, "title", text)}
+          onEndEditing={handleSaveNotes}
         />
         <TextInput
           value={currentEditingNote.content}
           onChangeText={(text) => handleEditNote(note.id, "content", text)}
+          onEndEditing={handleSaveNotes}
           multiline={true}
           style={styles.textInput}
           placeholder="Escreva sua nota aqui..."
-          autoFocus={false}
-          editable={true}
         />
-        <View style={{ padding: 20 }}>
+        <View
+          style={{
+            display: "flex",
+            position: "absolute",
+            left: 295,
+            top: 0
+          }}
+        >
+          <Menu
+            visible={visibleMenu === note.id}
+            onDismiss={closeMenu}
+            anchor={
+              <IconButton
+                icon="paw"
+                iconColor="#6750a4"
+                size={24}
+                style={styles.menuButton}
+                onPress={() => openMenu(note.id)}
+              />
+            }
+          >
+            <Menu.Item
+              onPress={() => handleDeleteNote(note.id)}
+              title="Excluir"
+              leadingIcon="delete"
+            />
+            <Menu.Item
+              onPress={() => handleCompleteNote(note.id)}
+              title="Concluir"
+              leadingIcon="check"
+            />
+          </Menu>
+        </View>
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
           <Button
             onPress={() =>
               setShowDataPicker((prev) => ({ ...prev, [note.id]: true }))
@@ -186,6 +282,8 @@ const NoteUI = () => {
               ? formatDate(currentEditingNote.dueDate)
               : "Selecione a data"}
           </Button>
+
+          {renderStatusIcon(currentEditingNote)}
 
           {showDataPicker[note.id] && (
             <DateTimePicker
@@ -277,13 +375,13 @@ const NoteUI = () => {
         icon="dog"
         style={[
           styles.chip,
-          selectedFilters.completed ? styles.selectedChip : {},
+          selectedFilters.completed ? styles.selectedChip : {}
         ]}
         textStyle={selectedFilters.completed ? {} : styles.unselectedText}
         onPress={() =>
           setSelectedFilters((prev) => ({
             ...prev,
-            completed: !prev.completed,
+            completed: !prev.completed
           }))
         }
       >
@@ -298,7 +396,7 @@ const NoteUI = () => {
         ...note,
         title: editingNotes[note.id]?.title || note.title,
         content: editingNotes[note.id]?.content || note.content,
-        dueDate: editingNotes[note.id]?.dueDate || note.dueDate,
+        dueDate: editingNotes[note.id]?.dueDate || note.dueDate
       };
 
       return editNote(note.id, editedNote);
@@ -306,15 +404,27 @@ const NoteUI = () => {
 
     try {
       await Promise.all(promises);
+      console.log("saved");
       refreshUserNotes();
     } catch (error) {
       console.error("Erro ao salvar notas:", error);
     }
   };
 
+  // Esperando FelipeCheck
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      console.warn("DELETAR ", noteId);
+      await deleteNote(noteId);
+      await refreshUserNotes();
+    } catch (error) {
+      console.log("erro ao deletar a nota: ", error);
+    }
+  };
+
   const handleDeleteNotes = async () => {
     const promises = selectedNoteIds.map(async (id: string) => {
-      console.log("DELETAR ", id);
+      console.warn("DELETAR ", id);
       await deleteNote(id);
     });
 
@@ -327,9 +437,27 @@ const NoteUI = () => {
     }
   };
 
+  const [visibleMenu, setVisibleMenu] = useState<string | null>(null);
+
+  const openMenu = (noteId: string) => setVisibleMenu(noteId);
+  const closeMenu = () => setVisibleMenu(null);
+
+  // Esperando FelipeCheck
+  const handleCompleteNote = async (noteId: string) => {
+    try {
+      console.log("Nota concluída: ", noteId);
+      await markAsCompleted(noteId);
+      setCompletedCheck(true);
+      await refreshUserNotes();
+    } catch (error) {
+      console.log("Erro ao concluir a nota: ", error);
+    }
+  };
+
   const handleCompletedNotes = async () => {
     const promises = selectedNoteIds.map(async (id: string) => {
       console.log("concluida: ", id);
+
       await markAsCompleted(id);
     });
 
@@ -347,41 +475,23 @@ const NoteUI = () => {
       <View style={styles.contentContainer}>
         {renderPetSelection()}
         {notes.length > 0 ? renderNoteList() : renderCreateNoteSection()}
-        <Button
-          style={styles.submitSaveButton}
-          mode="contained"
-          onPress={handleSaveNotes}
-        >
-          Salvar Notas
-        </Button>
-
-        <Button
-          style={styles.submitDeleteButton}
-          mode="contained"
-          onPress={handleDeleteNotes}
-        >
-          Apagar Notas
-        </Button>
-
-        <Button
-          style={styles.submitCompletedButton}
-          mode="contained"
-          onPress={handleCompletedNotes}
-        >
-          Concluir Notas
-        </Button>
       </View>
 
       <Portal>
         <Modal
           visible={modalVisible}
-          onDismiss={()=>setModalVisible(false)}
+          onDismiss={() => setModalVisible(false)}
           contentContainerStyle={containerStyle}
         >
           {renderCreateNoteSection()}
         </Modal>
 
-        <FAB style={styles.fab} visible icon="plus" onPress={()=>setModalVisible(true)} />
+        <FAB
+          style={styles.fab}
+          visible
+          icon="plus"
+          onPress={() => setModalVisible(true)}
+        />
       </Portal>
     </View>
   );
@@ -390,80 +500,78 @@ const NoteUI = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#fff"
   },
   contentContainer: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 20
   },
-
+  menuButton: {},
   noteContainer: {
-    // backgroundColor: "#fffbe0", // OU SETA TUDO DESSA COR AQUI MESMO E JA ERA
-    backgroundColor: mock.color, // Cor de fundo MESMA DA COR NA HOME
+    backgroundColor: mock.color,
     padding: 20,
     borderRadius: 10,
     marginBottom: 20,
-    elevation: 1,
+    elevation: 1
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 10,
+    marginBottom: 10
   },
   textInput: {
-    // backgroundColor: "#fffbe0", // OU SETA TUDO DESSA COR AQUI MESMO E JA ERA
-    backgroundColor: mock.color, // Cor de fundo MESMA DA COR NA HOME
+    backgroundColor: mock.color,
     fontSize: 16,
     color: "#333",
     textAlignVertical: "top",
     minHeight: 200,
-    borderWidth: 0,
+    borderWidth: 0
   },
 
   selectContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: 20
   },
   fab: {
     position: "absolute",
     margin: 16,
     right: 0,
-    bottom: 0,
+    bottom: 0
   },
   chip: {
     marginHorizontal: 10,
     borderRadius: 20,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#f0f0f0"
   },
   selectedChip: {
-    backgroundColor: "#ebdefa",
+    backgroundColor: "#ebdefa"
   },
   unselectedText: {
-    color: "#999999",
+    color: "#999999"
   },
   submitSaveButton: {
-    marginTop: 20,
+    marginTop: 20
   },
   submitDeleteButton: {
     marginTop: 10,
-    backgroundColor: "#f00",
+    backgroundColor: "#f00"
   },
   submitCompletedButton: {
     marginTop: 10,
-    backgroundColor: "#0f0",
+    backgroundColor: "#0f0"
   },
   // teste
   selectedNoteContainer: {
     // backgroundColor: "#d0e4ff",
     borderColor: "#007aff",
-    borderWidth: 2,
+    borderWidth: 2
   },
   completedNoteContainer: {
     borderColor: "#0f0",
-    borderWidth: 2,
-  },
+    borderWidth: 2
+  }
 });
 
 export default NoteUI;
