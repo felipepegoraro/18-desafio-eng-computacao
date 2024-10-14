@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { ScrollView, View, StyleSheet } from "react-native";
-import { Text, Provider, } from "react-native-paper";
+import { Text, Provider, ActivityIndicator } from "react-native-paper";
 
 import { db, auth } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
 import RegisterNewPet from "./registerNewPet";
+import PetCard from "./PetCard";
+import PetList from "./PetList";
 
 const Home = ({ navigation }) => {
-console.log("HOME");
   const user = auth.currentUser;
-  // const theme = useTheme();
 
-  // const [state, setState] = useState({ open: false });
-  // const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(true);
+
   const [ownsPet, setOwnsPet] = useState(false);
 
   useEffect(() => {
@@ -26,7 +26,6 @@ console.log("HOME");
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             console.log("data:", docSnap.data());
-            // setUsername(docSnap.data().name);
             setOwnsPet(docSnap.data().ownsPet);
           } else {
             console.log("Sem doc!");
@@ -36,24 +35,33 @@ console.log("HOME");
         }
       } catch (error) {
         console.error("erro fetching o nome", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchUserName();
   }, [user]);
 
-  // "https://t3.ftcdn.net/jpg/08/08/50/08/360_F_808500839_PbOxOfC4bdGG8ttFazqi7fiziFlqlaSk.jpg"
-
   return (
     <Provider>
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {!ownsPet ? (
+        <ScrollView
+          contentContainerStyle={
+            loading ? styles.loadingContainer : styles.scrollContainer
+          }
+          scrollEnabled={!loading}
+        >
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator animating={true} size={"large"} />
+            </View>
+          ) : !ownsPet ? (
             <View>
-                <Text>Ei! Parece que você não tem nenhum pet.</Text>
-                <RegisterNewPet />
+              <Text>Ei! Parece que você não tem nenhum pet.</Text>
+              <RegisterNewPet />
             </View>
           ) : (
-              <Text>tela inicial/escrever qualquer coisa etc</Text>
+            <PetList />
           )}
         </ScrollView>
       </View>
@@ -65,6 +73,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5"
+  },
+  loadingContainer: {
+    display: "flex",
+    minHeight: 680,
+    justifyContent: "space-around",
+    alignItems: "center"
   },
   scrollContainer: {
     paddingVertical: 10,

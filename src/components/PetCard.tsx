@@ -1,32 +1,36 @@
 import { View, StyleSheet } from "react-native";
 import { Card, Text, Avatar, Button } from "react-native-paper";
-import type { Pet } from '../firestore/createPets';
+import type { Pet } from "../firestore/createPets";
 
 const birthString = (date: Date): string => {
-    if (!date) return "";
+  if (!date) return "";
 
-    const today = new Date();
-    const diffTime = today.getTime() - date.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return "viajante do tempo";  // remover dps
+  const today = new Date();
+  const diffTime = today.getTime() - date.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    const years = Math.floor(diffDays / 365);
-    const months = Math.floor((diffDays % 365) / 30);
-    const days = diffDays % 30;
+  //ctz q vai ficar até o final
+  if (diffDays < 0) return "viajante do tempo"; // remover dps
 
-    let ret = "";
+  const years = Math.floor(diffDays / 365);
+  const months = Math.floor((diffDays % 365) / 30);
+  const days = diffDays % 30;
 
-    if (years > 0) ret += `${years} ano${years > 1 ? "s" : ""}`; 
-    if (months == 0 && ret !== "") return ret;
-    if (months > 0) ret += `${ret ? ", " : ""}${months} m${months > 1 ? "eses" : "ês"}`;
-    if (years == 0 && days > 0) ret += `${ret ? ", " : ""}${days} dia${days !== 1 ? "s" : ""}`
+  let ret = "";
 
-    return ret;
+  if (years > 0) ret += `${years} ano${years > 1 ? "s" : ""}`;
+  if (months == 0 && ret !== "") return ret;
+  if (months > 0)
+    ret += `${ret ? ", " : ""}${months} m${months > 1 ? "eses" : "ês"}`;
+  if (years == 0 && days > 0)
+    ret += `${ret ? ", " : ""}${days} dia${days !== 1 ? "s" : ""}`;
+
+  return ret;
 };
 
-export default function PetCard(pet: Pet) {
-    const defaultImage = "https://cdn-icons-png.flaticon.com/512/5094/5094257.png"
+export default function PetCard(pet: Pet, index: number) {
+  const defaultImage =
+    "https://cdn-icons-png.flaticon.com/512/5094/5094257.png";
 
   return (
     <Card style={styles.cardPet}>
@@ -38,7 +42,7 @@ export default function PetCard(pet: Pet) {
         />
       </View>
 
-      <Card.Content style={styles.cardContent}>
+      <Card.Content style={styles.cardContent} key={index}>
         <Text style={styles.petName}>{pet.name}</Text>
         {pet.breed && <Text style={styles.petInfo}>{pet.notes}</Text>}
         <Text style={styles.petInfo}>Idade: {birthString(pet.birthDate)}</Text>
