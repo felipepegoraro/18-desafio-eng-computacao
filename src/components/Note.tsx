@@ -181,6 +181,7 @@ const NoteUI = () => {
     };
 
     const status = getCompletionStatus(note.dueDate);
+
     const renderStatusIcon = (note: {
       completedAt: Date | null;
       dueDate: Date | null;

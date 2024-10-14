@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
     marginRight: "5%"
   },
   actionButton: {
-    marginHorizontal: 10, // Adiciona espaçamento entre os botões
-    width: "40%" // Mantém o tamanho dos botões
+    marginHorizontal: 10,
+    width: "40%"
   }
 });
 
