@@ -1,46 +1,47 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ScrollView, View, StyleSheet } from "react-native";
 import { Text, Provider, ActivityIndicator } from "react-native-paper";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { db, auth } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
 import RegisterNewPet from "./registerNewPet";
-import PetCard from "./PetCard";
 import PetList from "./PetList";
 
 const Home = ({ navigation }) => {
   const user = auth.currentUser;
-
   const [loading, setLoading] = useState(true);
-
   const [ownsPet, setOwnsPet] = useState(false);
 
-  useEffect(() => {
-    const fetchUserName = async () => {
-      // setIsLoading(true);
-      try {
-        if (user) {
-          console.log("Current user UID:", user.uid);
-          const docRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            console.log("data:", docSnap.data());
-            setOwnsPet(docSnap.data().ownsPet);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUserData = async () => {
+        setLoading(true);
+        try {
+          if (user) {
+            console.log("Current user UID:", user.uid);
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              console.log("data:", docSnap.data());
+              setOwnsPet(docSnap.data().ownsPet);
+            } else {
+              console.log("Sem doc!");
+            }
           } else {
-            console.log("Sem doc!");
+            console.log("Nenhum usuario logado");
           }
-        } else {
-          console.log("Nenhum usuario logado");
+        } catch (error) {
+          console.error("erro fetching o nome", error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("erro fetching o nome", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserName();
-  }, [user]);
+      };
+
+      fetchUserData();
+    }, [user])
+  );
 
   return (
     <Provider>
