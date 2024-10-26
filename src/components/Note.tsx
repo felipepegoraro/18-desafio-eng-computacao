@@ -38,7 +38,7 @@ const formatDate = (date: Date | null): string => {
 };
 
 const mock = {
-  color: "#fffbe0"
+  color: "#f2f2f2"
 };
 
 type NoteFilters = {
@@ -48,7 +48,7 @@ type NoteFilters = {
 };
 
 const NoteUI = () => {
-  console.log("NOTEUI: renderizado de novo"); // TODO: USAR USEREF PARA NAO ATUALIZAR SEMPRE.
+  console.log("NOTEUI: renderizado de novo");
   const user = auth.currentUser;
 
   const [notes, setNotes] = useState<Note[]>([]);
@@ -57,7 +57,6 @@ const NoteUI = () => {
   const [selectedPetId, setSelectedPetId] = useState<string>("");
   const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
 
-  // overengineering???? eu nao sei!
   const [editingNotes, setEditingNotes] = useState<{ [key: string]: Note }>({});
   const [showDataPicker, setShowDataPicker] = useState<{
     [key: string]: boolean;
@@ -557,20 +556,18 @@ const styles = StyleSheet.create({
   },
   submitDeleteButton: {
     marginTop: 10,
-    backgroundColor: "#f00"
+    backgroundColor: "#ff9898"
   },
   submitCompletedButton: {
     marginTop: 10,
-    backgroundColor: "#0f0"
+    backgroundColor: "#acffac"
   },
-  // teste
   selectedNoteContainer: {
-    // backgroundColor: "#d0e4ff",
     borderColor: "#007aff",
     borderWidth: 2
   },
   completedNoteContainer: {
-    borderColor: "#0f0",
+    borderColor: "#acffac",
     borderWidth: 2
   }
 });

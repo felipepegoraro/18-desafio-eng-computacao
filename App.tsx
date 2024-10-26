@@ -25,7 +25,7 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) setUser(user);
+      if (user) setUser(user);
     });
     return () => unsubscribe();
   }, []);
@@ -36,19 +36,9 @@ export default function App() {
         {user ? (
           <Drawer.Navigator initialRouteName="Home">
             <Drawer.Screen name="Home" component={Home} />
-            {/* TODO:
-                Adicionar telas com as informações do Usuario
-                Adicionar telas com as informações dos pets
-
-          */}
-            <Drawer.Screen name="Meu Perfil" component={Home} />
-
-            {/*TODO: nome melhor pra isso*/}
-            <Drawer.Screen name="Meus Pets" component={PetList} /> 
 
             <Drawer.Screen name="Agenda" component={Agenda} />
 
-            {/* remover dps */}
             <Drawer.Screen name="Nota" component={Note} />
             <Stack.Screen
               name="Cadastrar Novo Pet"
