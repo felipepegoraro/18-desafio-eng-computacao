@@ -47,14 +47,15 @@ const Agenda = () => {
     if (user) calendarNotes(user.uid);
   }, [user]);
 
-  const formatDateCalendar = (date: Date | null): string => {
-    if (!date) return "Data invalida";
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    // [formato]: YYYY/MM/DD -> DD/MM/YYYY
-    return `${day < 10 ? "0" : ""}${day}-${month}-${year}`;
-  };
+    const formatDateCalendar = (date: Date | null): string => {
+        if (!date) return "Data invalida";
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        // Calendar aceita YYYY-MM-DD
+        return `${year}-${month < 10 ? "0" : ""}${month}-${day < 10 ? "0" : ""}${day}`;
+    };
+
 
   const colorsBasedOnToday = (note: Note) => {
     if (!note || !note.dueDate) return "#FFD700";
@@ -92,6 +93,7 @@ const Agenda = () => {
     const datesMarked = daysNotes.reduce((acc: MarkedDates, note: Note) => {
       if (!note.dueDate) return acc;
       const formattedDate = formatDateCalendar(note.dueDate);
+      console.log(`${note.title} ~> ${formattedDate}`);
 
       const dot = {
         key: note.id,

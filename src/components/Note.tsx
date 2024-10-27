@@ -30,10 +30,10 @@ import DateTimePicker, {
 
 const formatDate = (date: Date | null): string => {
   if (!date) return "Selecione a data";
+  console.log(date);
   const day = date.getDate();
   const month = date.getMonth() + 1;
   const year = date.getFullYear();
-  // [formato]: DD/MM/YYYY ~> DD/MM/YYYY
   return `${day}/${month}/${year}`;
 };
 
@@ -55,7 +55,6 @@ const NoteUI = () => {
   const [pets, setPets] = useState<Pet[]>([]);
 
   const [selectedPetId, setSelectedPetId] = useState<string>("");
-  const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
 
   const [editingNotes, setEditingNotes] = useState<{ [key: string]: Note }>({});
   const [showDataPicker, setShowDataPicker] = useState<{
@@ -78,8 +77,6 @@ const NoteUI = () => {
     marginRight: 30
   };
 
-  // const [, setCompletedCheck] = useState<boolean>(false);
-
   const fetchUserData = async () => {
     if (user) {
       const userNotes = await getUserNotes(user.uid);
@@ -91,6 +88,7 @@ const NoteUI = () => {
 
   useEffect(() => {
     fetchUserData();
+    refreshUserNotes();
   }, [user]);
 
   const handleCreateNote = async () => {
@@ -127,6 +125,7 @@ const NoteUI = () => {
         [field]: value
       }
     }));
+    handleSaveNotes();
   };
 
   const resetNoteFields = () => {
@@ -157,8 +156,6 @@ const NoteUI = () => {
       if (selectedFilters.cat && pet?.type !== "cat") return null;
       if (selectedFilters.completed && note.completedAt === null) return null;
     }
-
-    const isSelectedNote = selectedNoteIds.includes(note.id);
 
     const getCompletionStatus = (date: Date | null): number => {
       if (!date) return -1;
@@ -209,7 +206,6 @@ const NoteUI = () => {
         key={note.id}
         style={[
           styles.noteContainer,
-          isSelectedNote && styles.selectedNoteContainer,
           note.completedAt != null && styles.completedNoteContainer
         ]}
       >
@@ -269,11 +265,10 @@ const NoteUI = () => {
             justifyContent: "center"
           }}
         >
-          <Button
-            onPress={() =>
+          <Button onPress={() => {
               setShowDataPicker((prev) => ({ ...prev, [note.id]: true }))
-            }
-          >
+              console.log("OK: "+ showDataPicker)
+          }}>
             {currentEditingNote.dueDate
               ? formatDate(currentEditingNote.dueDate)
               : "Selecione a data"}
@@ -288,8 +283,7 @@ const NoteUI = () => {
               display="default"
               onChange={(_: DateTimePickerEvent, selectedDate?: Date) => {
                 setShowDataPicker((prev) => ({ ...prev, [note.id]: false }));
-                if (selectedDate)
-                  handleEditNote(note.id, "dueDate", selectedDate);
+                if (selectedDate) handleEditNote(note.id, "dueDate", selectedDate);
               }}
             />
           )}
@@ -386,28 +380,27 @@ const NoteUI = () => {
     </View>
   );
 
-  const handleSaveNotes = async () => {
-    const promises = notes.map((note) => {
-      const editedNote: Note = {
-        ...note,
-        title: editingNotes[note.id]?.title || note.title,
-        content: editingNotes[note.id]?.content || note.content,
-        dueDate: editingNotes[note.id]?.dueDate || note.dueDate
-      };
+    const handleSaveNotes = async () => {
+      const promises = Object.keys(editingNotes).map((id) => {
+        const editedNote = {
+          ...notes.find((note) => note.id === id),
+          ...editingNotes[id],
+          dueDate: editingNotes[id].dueDate
+        };
+        console.log("EDITED: ", editedNote);
+        return editNote(id, editedNote);
+      });
 
-      return editNote(note.id, editedNote);
-    });
 
-    try {
-      await Promise.all(promises);
-      console.log("saved");
-      refreshUserNotes();
-    } catch (error) {
-      console.error("Erro ao salvar notas:", error);
-    }
-  };
+      try {
+        await Promise.all(promises);
+        await refreshUserNotes();
+        console.log("Notas atualizadas com sucesso.");
+      } catch (error) {
+        console.error("Erro ao salvar notas:", error);
+      }
+    };
 
-  // Esperando FelipeCheck
   const handleDeleteNote = async (noteId: string) => {
     try {
       console.warn("DELETAR ", noteId);
@@ -418,51 +411,18 @@ const NoteUI = () => {
     }
   };
 
-  const handleDeleteNotes = async () => {
-    const promises = selectedNoteIds.map(async (id: string) => {
-      console.warn("DELETAR ", id);
-      await deleteNote(id);
-    });
-
-    try {
-      await Promise.all(promises);
-      setSelectedNoteIds([]);
-      await refreshUserNotes();
-    } catch (error) {
-      console.log("erro ao deletar notas selecionadas:  ", error);
-    }
-  };
-
   const [visibleMenu, setVisibleMenu] = useState<string | null>(null);
 
   const openMenu = (noteId: string) => setVisibleMenu(noteId);
   const closeMenu = () => setVisibleMenu(null);
 
-  // Esperando FelipeCheck
   const handleCompleteNote = async (noteId: string) => {
     try {
       console.log("Nota concluída: ", noteId);
       await markAsCompleted(noteId);
-      // setCompletedCheck(true);
       await refreshUserNotes();
     } catch (error) {
       console.log("Erro ao concluir a nota: ", error);
-    }
-  };
-
-  const handleCompletedNotes = async () => {
-    const promises = selectedNoteIds.map(async (id: string) => {
-      console.log("concluida: ", id);
-
-      await markAsCompleted(id);
-    });
-
-    try {
-      await Promise.all(promises);
-      setSelectedNoteIds([]);
-      await refreshUserNotes();
-    } catch (error) {
-      console.log("erro ao concluir notas: ", error);
     }
   };
 
