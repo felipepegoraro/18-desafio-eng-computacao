@@ -7,7 +7,6 @@ import { Calendar } from "react-native-calendars";
 
 import { useState, useEffect } from "react";
 import {
-  Dimensions,
   StyleSheet,
   View,
   Modal,
@@ -15,8 +14,6 @@ import {
   Pressable
 } from "react-native";
 import { Text, Button } from "react-native-paper";
-
-const { width, height } = Dimensions.get("window");
 
 interface MarkedDate {
   selected: boolean;
@@ -55,7 +52,8 @@ const Agenda = () => {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    return `${year}-${month}-${day < 10 ? "0" : ""}${day}`;
+    // [formato]: YYYY/MM/DD -> DD/MM/YYYY
+    return `${day < 10 ? "0" : ""}${day}-${month}-${year}`;
   };
 
   const colorsBasedOnToday = (note: Note) => {
@@ -70,7 +68,8 @@ const Agenda = () => {
     const diffDays = Math.ceil(
       (noteDateMidnight.getTime() - todayMidnight.getTime()) / msd
     );
-    const color = diffDays <= 5 ? "red" : diffDays <= 20 ? "#FFD700" : "green";
+
+    const color = (diffDays <= 5 && diffDays>=0) ? "red" : diffDays <= 20 ? "#FFD700" : "green";
 
     if (color === "red") {
       setEmBreve((prev) =>

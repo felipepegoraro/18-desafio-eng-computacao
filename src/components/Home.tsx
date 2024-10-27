@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { ScrollView, View, StyleSheet } from "react-native";
 import { Text, Provider, ActivityIndicator } from "react-native-paper";
 import { useFocusEffect } from "@react-navigation/native";
@@ -56,6 +56,7 @@ const Home = ({ navigation }) => {
             <View style={styles.loadingContainer}>
               <ActivityIndicator animating={true} size={"large"} />
             </View>
+
           ) : !ownsPet ? (
             <View>
               <Text>Ei! Parece que você não tem nenhum pet.</Text>

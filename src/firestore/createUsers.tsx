@@ -21,6 +21,15 @@ export const createUser = async (userId: string, name: string, email: string): P
   }
 };
 
+export const updateUser = async (userId: string, updatedData: Partial<User>): Promise<void> => {
+    try {
+        const userRef = doc(db, 'users', userId);
+        await setDoc(userRef, updatedData, { merge: true });
+        console.log('Usuário atualizado com sucesso!');
+    } catch (error) {
+        console.error('Erro ao atualizar usuário: ', error);
+    }
+};
 
 export const getUserPets = async (userId: string): Promise<Pet[] | null> => {
     try {

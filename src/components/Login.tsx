@@ -5,7 +5,7 @@ import {
   TextInput,
   Button,
   Text,
-  useTheme,
+  // useTheme,
   HelperText
 } from "react-native-paper";
 import { auth } from "../firebaseConfig";
@@ -17,7 +17,7 @@ const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const theme = useTheme();
+  // const theme = useTheme();
 
   const handleLogin = () => {
     signInWithEmailAndPassword(auth, email, password)

@@ -21,8 +21,7 @@ import {
   Modal,
   Menu,
   Icon,
-  IconButton,
-  Text
+  IconButton
 } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker, {
@@ -34,6 +33,7 @@ const formatDate = (date: Date | null): string => {
   const day = date.getDate();
   const month = date.getMonth() + 1;
   const year = date.getFullYear();
+  // [formato]: DD/MM/YYYY ~> DD/MM/YYYY
   return `${day}/${month}/${year}`;
 };
 
@@ -78,7 +78,7 @@ const NoteUI = () => {
     marginRight: 30
   };
 
-  const [completedCheck, setCompletedCheck] = useState<boolean>(false);
+  // const [, setCompletedCheck] = useState<boolean>(false);
 
   const fetchUserData = async () => {
     if (user) {
@@ -179,15 +179,11 @@ const NoteUI = () => {
       }
     };
 
-    const status = getCompletionStatus(note.dueDate);
-
     const renderStatusIcon = (note: {
       completedAt: Date | null;
       dueDate: Date | null;
     }) => {
-      if (note.completedAt) {
-        return <Icon source="check-bold" color="green" size={20} />;
-      }
+      if (note.completedAt) return <Icon source="check-bold" color="green" size={20} />;
 
       const status = getCompletionStatus(note.dueDate);
 
@@ -447,7 +443,7 @@ const NoteUI = () => {
     try {
       console.log("Nota concluída: ", noteId);
       await markAsCompleted(noteId);
-      setCompletedCheck(true);
+      // setCompletedCheck(true);
       await refreshUserNotes();
     } catch (error) {
       console.log("Erro ao concluir a nota: ", error);

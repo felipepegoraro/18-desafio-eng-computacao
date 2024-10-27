@@ -23,7 +23,7 @@ export const createPet = async (pet: Pet): Promise<void> => {
       breed: pet.breed,
       gender: pet.gender,
       weight: pet.weight,
-      birthDate: pet.birthDate,
+      birthDate: pet.birthDate, // converter para o formato timestamp que o firebase usa
       notes: pet.notes || null,
       image: pet.image || ""
     });

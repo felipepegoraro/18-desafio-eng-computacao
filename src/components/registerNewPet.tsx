@@ -1,11 +1,13 @@
 import { auth } from "../firebaseConfig"; //db
 import React, { useState } from "react";
+import type { User } from '../firestore/createUsers'
 import {
   View,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Modal
 } from "react-native";
 import {
   TextInput,
@@ -13,11 +15,12 @@ import {
   Text,
   RadioButton,
   Avatar,
-  IconButton
+  IconButton,
 } from "react-native-paper";
 import type { Pet } from '../firestore/createPets';
 import { createPet } from '../firestore/createPets';
 import * as ImagePicker from "expo-image-picker";
+import { updateUser } from "../firestore/createUsers";
 
 const RegisterNewPet = () => {
   const user = auth.currentUser;
@@ -33,9 +36,15 @@ const RegisterNewPet = () => {
     image: ""
   } as Pet);
 
+  const [modalValues, setModalValues] = useState({
+    text: "pet criado com sucesso",
+    visible: false
+  });
+
   const [data, setData] = useState("");
 
   const isValidDate = (dataStr: string): boolean => {
+        // [formato]: ~> DD-MM-YYYY
         const regex = /^\d{2}-\d{2}-\d{4}$/;
         if (!regex.test(dataStr)) return false;
         const [d, m, y] = dataStr.split('-').map(Number);
@@ -55,35 +64,48 @@ const RegisterNewPet = () => {
         setPet((prev) => ({ ...prev, image: result.assets[0].uri }));
   };
 
-  const handleSubmit = async () => {
-    // TODO: pet vazio sendo criado, rmeover.
-    if (pet && user) {
-      console.log(user.uid);
-      const newPet = {
-        ...pet,
-        userId: user.uid,
-        birthDate: new Date(data),
-      } as Pet;
+    const handleSubmit = async () => {
+        const emptyPet = Object.entries(pet).some(([key, value]) => {
+            if (key === 'notes' || key === 'image') return false; // ignora
+            return !value || String(value).trim().length === 0;
+        });
 
-      setPet({
-          id: "",
-          name: "",
-          type: "dog",
-          breed: "",
-          gender: "macho",
-          weight: 0.0,
-          birthDate: new Date(),
-          notes: "",
-          image: ""
-        } as Pet); 
+        if (!isValidDate(data)) {
+            setModalValues({ text: "Data inválida", visible: true });
+            return;
+        }
 
-        setData("");
+        if (pet && !emptyPet && user) {
+            const [day, month, year] = data.split('-').map(Number);
+            const birthDate = new Date(year, month - 1, day);
 
-      await createPet(newPet);
-      console.log("pet criado com sucesso: \n\t", newPet);
-      // TODO: POPUP dizendo "pet criado com sucesso".
-    }
-};
+            const newPet = {
+                ...pet,
+                userId: user.uid,
+                birthDate,
+            } as Pet;
+
+            setModalValues({ text: "Pet criado com sucesso.", visible: true });
+            await createPet(newPet);
+          
+            setPet({
+                id: "",
+                name: "",
+                type: "dog",
+                breed: "",
+                gender: "macho",
+                weight: 0.0,
+                birthDate: new Date(),
+                notes: "",
+                image: ""
+            } as Pet); 
+
+            setData("");
+
+            await updateUser(user.uid, { ownsPet: true } as Partial<User>)
+        }
+    };
+
 
   return (
     <KeyboardAvoidingView
@@ -100,7 +122,7 @@ const RegisterNewPet = () => {
                 "https://cdn-icons-png.flaticon.com/512/5094/5094257.png"
             }}
           />
-          <IconButton icon="camera" size={30} onPress={pickImage} />
+          <IconButton icon={"camera"} size={30} onPress={pickImage} />
         </View>
 
         <TextInput
@@ -167,7 +189,7 @@ const RegisterNewPet = () => {
           style={styles.input}
           onBlur={() => {
                 if (!isValidDate(data)){
-                    alert("data inválida");
+                    setModalValues({text: "data inválida", visible: true});
                     setData("");
                 }
           }}
@@ -190,7 +212,24 @@ const RegisterNewPet = () => {
         >
           Cadastrar Pet
         </Button>
+
       </ScrollView>
+
+      <Modal 
+        transparent={true}
+        visible={modalValues.visible} 
+        animationType={"fade"}
+        onDismiss={() => setModalValues((prev)=>({text: prev.text, visible: false}))}>
+        <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>{modalValues.text}</Text>
+            <Button 
+                mode={"contained"} 
+                onPress={() => 
+                    setModalValues((prev)=>({text: prev.text, visible: false}))}>
+                OK
+            </Button>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -199,6 +238,8 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     backgroundColor: "#fff",
+    justifyContent: "flex-end",
+    flex: 1,
     flexGrow: 1
   },
   avatarContainer: {
@@ -223,6 +264,20 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: 20,
     marginBottom: 10
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    elevation: 5
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 10
+  },
+  closeButton: {
+    marginTop: 10
   }
 });
 

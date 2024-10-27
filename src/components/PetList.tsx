@@ -22,7 +22,10 @@ const PetList = () => {
 
   return (
     <ScrollView>
-      {pets.map((pet: Pet, index: number) => PetCard(pet, index))}
+      {pets.map((pet: Pet, index: number) => {
+        console.log(pet);
+        return PetCard(pet, index);
+      })}
     </ScrollView>
   );
 };
