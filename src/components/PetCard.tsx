@@ -51,18 +51,10 @@ export default function PetCard(pet: Pet, index: number) {
       </Card.Content>
 
       <Card.Actions style={styles.cardActions}>
-        <Button
-          mode="contained"
-          onPress={() => console.log("Editar")}
-          style={styles.actionButton}
-        >
+        <Button mode="contained" style={styles.actionButton}>
           Editar
         </Button>
-        <Button
-          mode="outlined"
-          onPress={() => console.log("Remover")}
-          style={styles.actionButton}
-        >
+        <Button mode="outlined" style={styles.actionButton}>
           Remover
         </Button>
       </Card.Actions>

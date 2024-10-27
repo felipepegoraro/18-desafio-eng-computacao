@@ -1,5 +1,5 @@
 // src/components/Login.js
-import  { useState } from "react";
+import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import {
   TextInput,
@@ -12,7 +12,7 @@ import { auth } from "../firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 const Login = ({ navigation }) => {
-    console.log("LOGIN");
+  //console.log("LOGIN");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,11 +22,11 @@ const Login = ({ navigation }) => {
   const handleLogin = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
-        console.log("LOGADO");
+        //console.log("LOGADO");
         setErrorMessage("");
       })
       .catch((error) => {
-        console.log("LOGADO:",  error.message);
+        //console.log("LOGADO:",  error.message);
         setErrorMessage(error.message);
       });
   };
@@ -48,7 +48,7 @@ const Login = ({ navigation }) => {
         autoCapitalize="none"
         left={<TextInput.Icon icon="email" />}
       />
-      <HelperText type="error" visible={(!email || errorMessage != "")}>
+      <HelperText type="error" visible={!email || errorMessage != ""}>
         {errorMessage}
       </HelperText>
 

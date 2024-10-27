@@ -20,17 +20,17 @@ const Home = ({ navigation }) => {
         setLoading(true);
         try {
           if (user) {
-            console.log("Current user UID:", user.uid);
+            //console.log("Current user UID:", user.uid);
             const docRef = doc(db, "users", user.uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-              console.log("data:", docSnap.data());
+              //console.log("data:", docSnap.data());
               setOwnsPet(docSnap.data().ownsPet);
             } else {
-              console.log("Sem doc!");
+              //console.log("Sem doc!");
             }
           } else {
-            console.log("Nenhum usuario logado");
+            //console.log("Nenhum usuario logado");
           }
         } catch (error) {
           console.error("erro fetching o nome", error);
@@ -56,7 +56,6 @@ const Home = ({ navigation }) => {
             <View style={styles.loadingContainer}>
               <ActivityIndicator animating={true} size={"large"} />
             </View>
-
           ) : !ownsPet ? (
             <View>
               <Text>Ei! Parece que você não tem nenhum pet.</Text>

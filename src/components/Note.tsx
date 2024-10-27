@@ -30,7 +30,7 @@ import DateTimePicker, {
 
 const formatDate = (date: Date | null): string => {
   if (!date) return "Selecione a data";
-  console.log(date);
+  //console.log(date);
   const day = date.getDate();
   const month = date.getMonth() + 1;
   const year = date.getFullYear();
@@ -48,7 +48,7 @@ type NoteFilters = {
 };
 
 const NoteUI = () => {
-  console.log("NOTEUI: renderizado de novo");
+  //console.log("NOTEUI: renderizado de novo");
   const user = auth.currentUser;
 
   const [notes, setNotes] = useState<Note[]>([]);
@@ -117,7 +117,7 @@ const NoteUI = () => {
     field: "title" | "content" | "dueDate",
     value: string | Date
   ) => {
-    console.log(value);
+    //console.log(value);
     setEditingNotes((prev) => ({
       ...prev,
       [id]: {
@@ -180,7 +180,8 @@ const NoteUI = () => {
       completedAt: Date | null;
       dueDate: Date | null;
     }) => {
-      if (note.completedAt) return <Icon source="check-bold" color="green" size={20} />;
+      if (note.completedAt)
+        return <Icon source="check-bold" color="green" size={20} />;
 
       const status = getCompletionStatus(note.dueDate);
 
@@ -265,10 +266,12 @@ const NoteUI = () => {
             justifyContent: "center"
           }}
         >
-          <Button onPress={() => {
-              setShowDataPicker((prev) => ({ ...prev, [note.id]: true }))
-              console.log("OK: "+ showDataPicker)
-          }}>
+          <Button
+            onPress={() => {
+              setShowDataPicker((prev) => ({ ...prev, [note.id]: true }));
+              //console.log("OK: "+ showDataPicker)
+            }}
+          >
             {currentEditingNote.dueDate
               ? formatDate(currentEditingNote.dueDate)
               : "Selecione a data"}
@@ -283,7 +286,8 @@ const NoteUI = () => {
               display="default"
               onChange={(_: DateTimePickerEvent, selectedDate?: Date) => {
                 setShowDataPicker((prev) => ({ ...prev, [note.id]: false }));
-                if (selectedDate) handleEditNote(note.id, "dueDate", selectedDate);
+                if (selectedDate)
+                  handleEditNote(note.id, "dueDate", selectedDate);
               }}
             />
           )}
@@ -380,26 +384,25 @@ const NoteUI = () => {
     </View>
   );
 
-    const handleSaveNotes = async () => {
-      const promises = Object.keys(editingNotes).map((id) => {
-        const editedNote = {
-          ...notes.find((note) => note.id === id),
-          ...editingNotes[id],
-          dueDate: editingNotes[id].dueDate
-        };
-        console.log("EDITED: ", editedNote);
-        return editNote(id, editedNote);
-      });
+  const handleSaveNotes = async () => {
+    const promises = Object.keys(editingNotes).map((id) => {
+      const editedNote = {
+        ...notes.find((note) => note.id === id),
+        ...editingNotes[id],
+        dueDate: editingNotes[id].dueDate
+      };
+      //console.log("EDITED: ", editedNote);
+      return editNote(id, editedNote);
+    });
 
-
-      try {
-        await Promise.all(promises);
-        await refreshUserNotes();
-        console.log("Notas atualizadas com sucesso.");
-      } catch (error) {
-        console.error("Erro ao salvar notas:", error);
-      }
-    };
+    try {
+      await Promise.all(promises);
+      await refreshUserNotes();
+      //console.log("Notas atualizadas com sucesso.");
+    } catch (error) {
+      console.error("Erro ao salvar notas:", error);
+    }
+  };
 
   const handleDeleteNote = async (noteId: string) => {
     try {
@@ -407,7 +410,7 @@ const NoteUI = () => {
       await deleteNote(noteId);
       await refreshUserNotes();
     } catch (error) {
-      console.log("erro ao deletar a nota: ", error);
+      //console.log("erro ao deletar a nota: ", error);
     }
   };
 
@@ -418,11 +421,11 @@ const NoteUI = () => {
 
   const handleCompleteNote = async (noteId: string) => {
     try {
-      console.log("Nota concluída: ", noteId);
+      //console.log("Nota concluída: ", noteId);
       await markAsCompleted(noteId);
       await refreshUserNotes();
     } catch (error) {
-      console.log("Erro ao concluir a nota: ", error);
+      //console.log("Erro ao concluir a nota: ", error);
     }
   };
 
