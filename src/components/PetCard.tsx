@@ -82,8 +82,7 @@ const PetCard = (props: PetCardProps) => {
           <Text style={styles.petName}>{pet.name}</Text>
           <Text style={styles.petInfo}>Espécie: {pet.breed}</Text>
           <Text style={styles.petInfo}>
-            Idade: {pet.birthDate.getFullYear()} ano
-            {pet.birthDate.getFullYear() > 1 ? `s` : ``}
+            Idade: {birthString(pet.birthDate)}
           </Text>
 
           <Text style={styles.petInfo}>Peso: {pet.weight}</Text>
