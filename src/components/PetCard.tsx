@@ -16,7 +16,7 @@ type PetCardProps = {
   pet: Pet;
   index: number;
   userId: string;
-  refreshData: () => void; // Novo parâmetro
+  refreshData: () => void;
 };
 
 const PetCard = (props: PetCardProps) => {
@@ -32,13 +32,39 @@ const PetCard = (props: PetCardProps) => {
 
   const handleEdit = async () => {
     await updatePet(pet.id, editedPet);
-    refreshData(); // Atualiza a tela após editar
+    refreshData();
     hideModal();
   };
 
   const handleDelete = async () => {
     await deletePet(pet, userId);
-    refreshData(); // Atualiza a tela após deletar
+    refreshData();
+  };
+
+  const birthString = (date: Date): string => {
+    if (!date) return "";
+
+    const today = new Date();
+    const diffTime = today.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    //ctz q vai ficar até o final
+    if (diffDays < 0) return "viajante do tempo"; // remover dps
+
+    const years = Math.floor(diffDays / 365);
+    const months = Math.floor((diffDays % 365) / 30);
+    const days = diffDays % 30;
+
+    let ret = "";
+
+    if (years > 0) ret += `${years} ano${years > 1 ? "s" : ""}`;
+    if (months == 0 && ret !== "") return ret;
+    if (months > 0)
+      ret += `${ret ? ", " : ""}${months} m${months > 1 ? "eses" : "ês"}`;
+    if (years == 0 && days > 0)
+      ret += `${ret ? ", " : ""}${days} dia${days !== 1 ? "s" : ""}`;
+
+    return ret;
   };
 
   return (
@@ -55,6 +81,11 @@ const PetCard = (props: PetCardProps) => {
         <Card.Content style={styles.cardContent} key={index}>
           <Text style={styles.petName}>{pet.name}</Text>
           <Text style={styles.petInfo}>Espécie: {pet.breed}</Text>
+          <Text style={styles.petInfo}>
+            Idade: {pet.birthDate.getFullYear()} ano
+            {pet.birthDate.getFullYear() > 1 ? `s` : ``}
+          </Text>
+
           <Text style={styles.petInfo}>Peso: {pet.weight}</Text>
         </Card.Content>
 

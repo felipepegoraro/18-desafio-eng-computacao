@@ -28,7 +28,7 @@ const PetList = ({ refreshData }) => {
           pet={pet}
           index={index}
           userId={user!.uid}
-          refreshData={refreshData} // Passando a função para cada PetCard
+          refreshData={refreshData}
         />
       ))}
     </ScrollView>

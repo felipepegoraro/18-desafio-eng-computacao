@@ -59,7 +59,7 @@ const Home = ({ navigation }) => {
               <RegisterNewPet />
             </View>
           ) : (
-            <PetList refreshData={refreshData} /> // Passando a função para o PetList
+            <PetList refreshData={refreshData} />
           )}
         </ScrollView>
       </View>
