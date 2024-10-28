@@ -1,5 +1,5 @@
 import PetCard from "./PetCard";
-import type { Pet } from "../firestore/createPets";
+import { type Pet } from "../firestore/createPets";
 import { getUserPets } from "../firestore/createUsers";
 import { auth } from "../firebaseConfig";
 import { useState, useEffect } from "react";
@@ -20,12 +20,12 @@ const PetList = () => {
     fetchUserData();
   }, [user]);
 
+  // ATUALIZAR a tela assim que clicar em REMOVER ou submit do EDITAR
   return (
     <ScrollView>
-      {pets.map((pet: Pet, index: number) => {
-        //console.log(pet);
-        return PetCard(pet, index);
-      })}
+      {pets.map((pet: Pet, index: number) => (
+        <PetCard key={index} pet={pet} index={index} userId={user!.uid} />
+      ))}
     </ScrollView>
   );
 };

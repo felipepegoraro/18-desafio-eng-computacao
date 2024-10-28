@@ -6,6 +6,7 @@ import {
   setDoc,
   collection,
   getDocs,
+  deleteDoc,
   query,
   where
 } from "firebase/firestore";
@@ -104,4 +105,49 @@ export const getUserNotes = async (userId: string): Promise<Note[] | null> => {
   }
 
   return null;
+};
+
+// export const deleteAllUserNotes = async (userId: string): Promise<boolean> => {
+//     try {
+//         const notesRef = collection(db, "notes");
+//         const q = query(notesRef, where("userId", "==", userId));
+//         const querySnapshot = await getDocs(q);
+//
+//         const deletePromises = querySnapshot.docs.map(async (doc) => {
+//             await deleteDoc(doc.ref);
+//         });
+//
+//         await Promise.all(deletePromises);
+//         console.log("Todas as notas foram deletadas com sucesso.");
+//         return true;
+//     } catch (error) {
+//         console.log("Erro ao deletar notas: ", error);
+//         return false;
+//     }
+// }
+
+export const deletePetNotesFromUser = async (
+  userId: string,
+  petId: string
+): Promise<boolean> => {
+  try {
+    const notesRef = collection(db, "notes");
+    const q = query(
+      notesRef,
+      where("userId", "==", userId),
+      where("petId", "==", petId)
+    );
+
+    const querySnapshot = await getDocs(q);
+    const deletePromises = querySnapshot.docs.map(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+    await Promise.all(deletePromises);
+    console.log(`Todas as notas do pet ${petId} foram deletadas com sucesso.`);
+    return true;
+  } catch (error) {
+    console.log(error);
+    console.warn("bosta");
+    return false;
+  }
 };

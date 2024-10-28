@@ -1,5 +1,13 @@
-import { addDoc, setDoc, collection } from "firebase/firestore";
+import {
+  addDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  doc,
+  deleteDoc
+} from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { deletePetNotesFromUser } from "./createUsers";
 
 export interface Pet {
   id: string;
@@ -23,7 +31,7 @@ export const createPet = async (pet: Pet): Promise<void> => {
       breed: pet.breed,
       gender: pet.gender,
       weight: pet.weight,
-      birthDate: pet.birthDate, // converter para o formato timestamp que o firebase usa
+      birthDate: pet.birthDate,
       notes: pet.notes || null,
       image: pet.image || ""
     });
@@ -34,5 +42,37 @@ export const createPet = async (pet: Pet): Promise<void> => {
     //console.log('Pet criado com sucesso!', petWithId);
   } catch (error) {
     //console.log('Erro ao criar pet: ', error);
+  }
+};
+
+export const deletePet = async (pet: Pet, userId: string): Promise<number> => {
+  if (pet && pet.id) {
+    try {
+      const petsRef = doc(db, "pets", pet.id);
+      await deleteDoc(petsRef);
+
+      deletePetNotesFromUser(userId, pet.id);
+
+      return 0;
+    } catch (error) {
+      console.log(error);
+      return 1;
+    }
+  }
+
+  return 1;
+};
+
+export const updatePet = async (
+  petId: string,
+  updatedPet: Partial<Pet>
+): Promise<void> => {
+  try {
+    const petRef = doc(db, "pets", petId);
+    await updateDoc(petRef, updatedPet);
+
+    console.log("Pet atualizado com sucesso!", updatedPet);
+  } catch (error) {
+    console.log("Erro ao atualizar pet: ", error);
   }
 };
