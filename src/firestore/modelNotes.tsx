@@ -44,7 +44,7 @@ export const createNote = async (
     await updateDoc(docRef, { id: docRef.id });
     //console.log(`Nota ${docRef.id} criada com sucesso`);
   } catch (error) {
-    console.error("Erro ao criar nota: ", error);
+    // console.error("Erro ao criar nota: ", error);
   }
 };
 
@@ -70,7 +70,7 @@ export const editNote = async (
       return false;
     }
   } catch (error) {
-    console.error("Erro ao editar nota: ", error);
+    // console.error("Erro ao editar nota: ", error);
     return false;
   }
 };

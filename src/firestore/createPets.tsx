@@ -55,7 +55,7 @@ export const deletePet = async (pet: Pet, userId: string): Promise<number> => {
 
       return 0;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       return 1;
     }
   }
@@ -71,8 +71,8 @@ export const updatePet = async (
     const petRef = doc(db, "pets", petId);
     await updateDoc(petRef, updatedPet);
 
-    console.log("Pet atualizado com sucesso!", updatedPet);
+    // console.log("Pet atualizado com sucesso!", updatedPet);
   } catch (error) {
-    console.log("Erro ao atualizar pet: ", error);
+    // console.log("Erro ao atualizar pet: ", error);
   }
 };

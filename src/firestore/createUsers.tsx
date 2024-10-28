@@ -29,7 +29,7 @@ export const createUser = async (
     } as User);
     //console.log('Usuário criado com sucesso!');
   } catch (error) {
-    console.error("Erro ao criar usuário: ", error);
+    // console.error("Erro ao criar usuário: ", error);
   }
 };
 
@@ -42,7 +42,7 @@ export const updateUser = async (
     await setDoc(userRef, updatedData, { merge: true });
     //console.log('Usuário atualizado com sucesso!');
   } catch (error) {
-    console.error("Erro ao atualizar usuário: ", error);
+    // console.error("Erro ao atualizar usuário: ", error);
   }
 };
 
@@ -143,11 +143,10 @@ export const deletePetNotesFromUser = async (
       await deleteDoc(doc.ref);
     });
     await Promise.all(deletePromises);
-    console.log(`Todas as notas do pet ${petId} foram deletadas com sucesso.`);
+    // console.log(`Todas as notas do pet ${petId} foram deletadas com sucesso.`);
     return true;
   } catch (error) {
-    console.log(error);
-    console.warn("bosta");
+    // console.log(error)    // console.warn("bosta");
     return false;
   }
 };

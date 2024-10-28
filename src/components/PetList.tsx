@@ -5,7 +5,7 @@ import { auth } from "../firebaseConfig";
 import { useState, useEffect } from "react";
 import { ScrollView } from "react-native";
 
-const PetList = () => {
+const PetList = ({ refreshData }) => {
   const [pets, setPets] = useState<Pet[]>([]);
   const user = auth.currentUser;
 
@@ -20,11 +20,16 @@ const PetList = () => {
     fetchUserData();
   }, [user]);
 
-  // ATUALIZAR a tela assim que clicar em REMOVER ou submit do EDITAR
   return (
     <ScrollView>
       {pets.map((pet: Pet, index: number) => (
-        <PetCard key={index} pet={pet} index={index} userId={user!.uid} />
+        <PetCard
+          key={index}
+          pet={pet}
+          index={index}
+          userId={user!.uid}
+          refreshData={refreshData} // Passando a função para cada PetCard
+        />
       ))}
     </ScrollView>
   );

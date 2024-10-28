@@ -165,13 +165,13 @@ const NoteUI = () => {
       const comparison = date.setHours(0, 0, 0, 0) - today.getTime();
 
       if (comparison < 0) {
-        console.warn("Data passada");
+        // console.warn("Data passada");
         return 0;
       } else if (comparison === 0) {
-        console.warn("Hoje");
+        // console.warn("Hoje");
         return 1;
       } else {
-        console.warn("Data futura");
+        // console.warn("Data futura");
         return 2;
       }
     };
@@ -400,13 +400,13 @@ const NoteUI = () => {
       await refreshUserNotes();
       //console.log("Notas atualizadas com sucesso.");
     } catch (error) {
-      console.error("Erro ao salvar notas:", error);
+      // console.error("Erro ao salvar notas:", error);
     }
   };
 
   const handleDeleteNote = async (noteId: string) => {
     try {
-      console.warn("DELETAR ", noteId);
+      // console.warn("DELETAR ", noteId);
       await deleteNote(noteId);
       await refreshUserNotes();
     } catch (error) {

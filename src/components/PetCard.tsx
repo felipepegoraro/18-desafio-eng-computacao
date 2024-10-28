@@ -12,40 +12,15 @@ import {
 import type { Pet } from "../firestore/createPets";
 import { deletePet, updatePet } from "../firestore/createPets";
 
-const birthString = (date: Date): string => {
-  if (!date) return "";
-
-  const today = new Date();
-  const diffTime = today.getTime() - date.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  //ctz q vai ficar até o final
-  if (diffDays < 0) return "viajante do tempo"; // remover dps
-
-  const years = Math.floor(diffDays / 365);
-  const months = Math.floor((diffDays % 365) / 30);
-  const days = diffDays % 30;
-
-  let ret = "";
-
-  if (years > 0) ret += `${years} ano${years > 1 ? "s" : ""}`;
-  if (months == 0 && ret !== "") return ret;
-  if (months > 0)
-    ret += `${ret ? ", " : ""}${months} m${months > 1 ? "eses" : "ês"}`;
-  if (years == 0 && days > 0)
-    ret += `${ret ? ", " : ""}${days} dia${days !== 1 ? "s" : ""}`;
-
-  return ret;
-};
-
 type PetCardProps = {
   pet: Pet;
   index: number;
   userId: string;
+  refreshData: () => void; // Novo parâmetro
 };
 
 const PetCard = (props: PetCardProps) => {
-  const { pet, index, userId } = props;
+  const { pet, index, userId, refreshData } = props;
   const defaultImage =
     "https://cdn-icons-png.flaticon.com/512/5094/5094257.png";
 
@@ -57,8 +32,13 @@ const PetCard = (props: PetCardProps) => {
 
   const handleEdit = async () => {
     await updatePet(pet.id, editedPet);
-    console.log("Pet editado:", editedPet);
+    refreshData(); // Atualiza a tela após editar
     hideModal();
+  };
+
+  const handleDelete = async () => {
+    await deletePet(pet, userId);
+    refreshData(); // Atualiza a tela após deletar
   };
 
   return (
@@ -74,12 +54,8 @@ const PetCard = (props: PetCardProps) => {
 
         <Card.Content style={styles.cardContent} key={index}>
           <Text style={styles.petName}>{pet.name}</Text>
-          {pet.breed && <Text style={styles.petInfo}>{pet.notes}</Text>}
-          <Text style={styles.petInfo}>
-            Idade: {birthString(pet.birthDate)}
-          </Text>
-          <Text style={styles.petInfo}>Peso: {pet.weight}</Text>
           <Text style={styles.petInfo}>Espécie: {pet.breed}</Text>
+          <Text style={styles.petInfo}>Peso: {pet.weight}</Text>
         </Card.Content>
 
         <Card.Actions style={styles.cardActions}>
@@ -92,7 +68,7 @@ const PetCard = (props: PetCardProps) => {
           </Button>
           <Button
             mode="outlined"
-            onPress={() => deletePet(pet, userId)}
+            onPress={handleDelete}
             style={styles.actionButton}
           >
             Remover
@@ -110,23 +86,6 @@ const PetCard = (props: PetCardProps) => {
               }
               style={styles.input}
             />
-            <TextInput
-              label="Espécie"
-              value={editedPet.breed}
-              onChangeText={(text) =>
-                setEditedPet({ ...editedPet, breed: text })
-              }
-              style={styles.input}
-            />
-            <TextInput
-              label="Peso"
-              value={editedPet.weight.toString()}
-              onChangeText={(text) =>
-                setEditedPet({ ...editedPet, weight: Number(text) })
-              }
-              style={styles.input}
-              keyboardType="numeric"
-            />
             <Button
               mode="contained"
               onPress={handleEdit}
@@ -142,7 +101,6 @@ const PetCard = (props: PetCardProps) => {
 };
 
 export default PetCard;
-
 const styles = StyleSheet.create({
   cardPet: {
     marginBottom: 15,
