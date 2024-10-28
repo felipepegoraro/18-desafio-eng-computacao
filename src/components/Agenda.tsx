@@ -6,17 +6,8 @@ import { getUserNotes } from "../firestore/createUsers";
 import { Calendar } from "react-native-calendars";
 
 import { useState, useEffect } from "react";
-import {
-  Dimensions,
-  StyleSheet,
-  View,
-  Modal,
-  ScrollView,
-  Pressable
-} from "react-native";
+import { StyleSheet, View, Modal, ScrollView, Pressable } from "react-native";
 import { Text, Button } from "react-native-paper";
-
-const { width, height } = Dimensions.get("window");
 
 interface MarkedDate {
   selected: boolean;
@@ -55,7 +46,10 @@ const Agenda = () => {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    return `${year}-${month}-${day < 10 ? "0" : ""}${day}`;
+    // Calendar aceita YYYY-MM-DD
+    return `${year}-${month < 10 ? "0" : ""}${month}-${
+      day < 10 ? "0" : ""
+    }${day}`;
   };
 
   const colorsBasedOnToday = (note: Note) => {
@@ -70,7 +64,13 @@ const Agenda = () => {
     const diffDays = Math.ceil(
       (noteDateMidnight.getTime() - todayMidnight.getTime()) / msd
     );
-    const color = diffDays <= 5 ? "red" : diffDays <= 20 ? "#FFD700" : "green";
+
+    const color =
+      diffDays <= 5 && diffDays >= 0
+        ? "red"
+        : diffDays <= 20
+        ? "#FFD700"
+        : "green";
 
     if (color === "red") {
       setEmBreve((prev) =>
@@ -93,6 +93,7 @@ const Agenda = () => {
     const datesMarked = daysNotes.reduce((acc: MarkedDates, note: Note) => {
       if (!note.dueDate) return acc;
       const formattedDate = formatDateCalendar(note.dueDate);
+      // //console.log(`${note.title} ~> ${formattedDate}`);
 
       const dot = {
         key: note.id,

@@ -5,7 +5,7 @@ import {
   TextInput,
   Button,
   Text,
-  useTheme,
+  // useTheme,
   HelperText
 } from "react-native-paper";
 import { auth } from "../firebaseConfig";
@@ -20,7 +20,7 @@ const Register = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const theme = useTheme();
+  // const theme = useTheme();
 
   const handleRegister = async () => {
     try {
@@ -70,7 +70,7 @@ const Register = ({ navigation }) => {
         style={styles.input}
         left={<TextInput.Icon icon="email" />}
       />
-      <HelperText type="error" visible={(email == "" || errorMessage != "")}>
+      <HelperText type="error" visible={email == "" || errorMessage != ""}>
         {errorMessage}
       </HelperText>
 

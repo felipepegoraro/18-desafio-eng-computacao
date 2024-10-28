@@ -1,11 +1,11 @@
 import PetCard from "./PetCard";
-import type { Pet } from "../firestore/createPets";
+import { type Pet } from "../firestore/createPets";
 import { getUserPets } from "../firestore/createUsers";
 import { auth } from "../firebaseConfig";
 import { useState, useEffect } from "react";
 import { ScrollView } from "react-native";
 
-const PetList = () => {
+const PetList = ({ refreshData }) => {
   const [pets, setPets] = useState<Pet[]>([]);
   const user = auth.currentUser;
 
@@ -22,7 +22,15 @@ const PetList = () => {
 
   return (
     <ScrollView>
-      {pets.map((pet: Pet, index: number) => PetCard(pet, index))}
+      {pets.map((pet: Pet, index: number) => (
+        <PetCard
+          key={index}
+          pet={pet}
+          index={index}
+          userId={user!.uid}
+          refreshData={refreshData} // Passando a função para cada PetCard
+        />
+      ))}
     </ScrollView>
   );
 };

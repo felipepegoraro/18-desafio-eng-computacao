@@ -21,8 +21,7 @@ import {
   Modal,
   Menu,
   Icon,
-  IconButton,
-  Text
+  IconButton
 } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker, {
@@ -31,6 +30,7 @@ import DateTimePicker, {
 
 const formatDate = (date: Date | null): string => {
   if (!date) return "Selecione a data";
+  //console.log(date);
   const day = date.getDate();
   const month = date.getMonth() + 1;
   const year = date.getFullYear();
@@ -38,7 +38,7 @@ const formatDate = (date: Date | null): string => {
 };
 
 const mock = {
-  color: "#fffbe0"
+  color: "#f2f2f2"
 };
 
 type NoteFilters = {
@@ -48,16 +48,14 @@ type NoteFilters = {
 };
 
 const NoteUI = () => {
-  console.log("NOTEUI: renderizado de novo"); // TODO: USAR USEREF PARA NAO ATUALIZAR SEMPRE.
+  //console.log("NOTEUI: renderizado de novo");
   const user = auth.currentUser;
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
 
   const [selectedPetId, setSelectedPetId] = useState<string>("");
-  const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
 
-  // overengineering???? eu nao sei!
   const [editingNotes, setEditingNotes] = useState<{ [key: string]: Note }>({});
   const [showDataPicker, setShowDataPicker] = useState<{
     [key: string]: boolean;
@@ -79,8 +77,6 @@ const NoteUI = () => {
     marginRight: 30
   };
 
-  const [completedCheck, setCompletedCheck] = useState<boolean>(false);
-
   const fetchUserData = async () => {
     if (user) {
       const userNotes = await getUserNotes(user.uid);
@@ -92,6 +88,7 @@ const NoteUI = () => {
 
   useEffect(() => {
     fetchUserData();
+    refreshUserNotes();
   }, [user]);
 
   const handleCreateNote = async () => {
@@ -120,7 +117,7 @@ const NoteUI = () => {
     field: "title" | "content" | "dueDate",
     value: string | Date
   ) => {
-    console.log(value);
+    //console.log(value);
     setEditingNotes((prev) => ({
       ...prev,
       [id]: {
@@ -128,6 +125,7 @@ const NoteUI = () => {
         [field]: value
       }
     }));
+    handleSaveNotes();
   };
 
   const resetNoteFields = () => {
@@ -159,8 +157,6 @@ const NoteUI = () => {
       if (selectedFilters.completed && note.completedAt === null) return null;
     }
 
-    const isSelectedNote = selectedNoteIds.includes(note.id);
-
     const getCompletionStatus = (date: Date | null): number => {
       if (!date) return -1;
 
@@ -169,26 +165,23 @@ const NoteUI = () => {
       const comparison = date.setHours(0, 0, 0, 0) - today.getTime();
 
       if (comparison < 0) {
-        console.warn("Data passada");
+        // console.warn("Data passada");
         return 0;
       } else if (comparison === 0) {
-        console.warn("Hoje");
+        // console.warn("Hoje");
         return 1;
       } else {
-        console.warn("Data futura");
+        // console.warn("Data futura");
         return 2;
       }
     };
-
-    const status = getCompletionStatus(note.dueDate);
 
     const renderStatusIcon = (note: {
       completedAt: Date | null;
       dueDate: Date | null;
     }) => {
-      if (note.completedAt) {
+      if (note.completedAt)
         return <Icon source="check-bold" color="green" size={20} />;
-      }
 
       const status = getCompletionStatus(note.dueDate);
 
@@ -214,7 +207,6 @@ const NoteUI = () => {
         key={note.id}
         style={[
           styles.noteContainer,
-          isSelectedNote && styles.selectedNoteContainer,
           note.completedAt != null && styles.completedNoteContainer
         ]}
       >
@@ -275,9 +267,10 @@ const NoteUI = () => {
           }}
         >
           <Button
-            onPress={() =>
-              setShowDataPicker((prev) => ({ ...prev, [note.id]: true }))
-            }
+            onPress={() => {
+              setShowDataPicker((prev) => ({ ...prev, [note.id]: true }));
+              //console.log("OK: "+ showDataPicker)
+            }}
           >
             {currentEditingNote.dueDate
               ? formatDate(currentEditingNote.dueDate)
@@ -392,49 +385,32 @@ const NoteUI = () => {
   );
 
   const handleSaveNotes = async () => {
-    const promises = notes.map((note) => {
-      const editedNote: Note = {
-        ...note,
-        title: editingNotes[note.id]?.title || note.title,
-        content: editingNotes[note.id]?.content || note.content,
-        dueDate: editingNotes[note.id]?.dueDate || note.dueDate
+    const promises = Object.keys(editingNotes).map((id) => {
+      const editedNote = {
+        ...notes.find((note) => note.id === id),
+        ...editingNotes[id],
+        dueDate: editingNotes[id].dueDate
       };
-
-      return editNote(note.id, editedNote);
+      //console.log("EDITED: ", editedNote);
+      return editNote(id, editedNote);
     });
 
     try {
       await Promise.all(promises);
-      console.log("saved");
-      refreshUserNotes();
+      await refreshUserNotes();
+      //console.log("Notas atualizadas com sucesso.");
     } catch (error) {
-      console.error("Erro ao salvar notas:", error);
+      // console.error("Erro ao salvar notas:", error);
     }
   };
 
-  // Esperando FelipeCheck
   const handleDeleteNote = async (noteId: string) => {
     try {
-      console.warn("DELETAR ", noteId);
+      // console.warn("DELETAR ", noteId);
       await deleteNote(noteId);
       await refreshUserNotes();
     } catch (error) {
-      console.log("erro ao deletar a nota: ", error);
-    }
-  };
-
-  const handleDeleteNotes = async () => {
-    const promises = selectedNoteIds.map(async (id: string) => {
-      console.warn("DELETAR ", id);
-      await deleteNote(id);
-    });
-
-    try {
-      await Promise.all(promises);
-      setSelectedNoteIds([]);
-      await refreshUserNotes();
-    } catch (error) {
-      console.log("erro ao deletar notas selecionadas:  ", error);
+      //console.log("erro ao deletar a nota: ", error);
     }
   };
 
@@ -443,31 +419,13 @@ const NoteUI = () => {
   const openMenu = (noteId: string) => setVisibleMenu(noteId);
   const closeMenu = () => setVisibleMenu(null);
 
-  // Esperando FelipeCheck
   const handleCompleteNote = async (noteId: string) => {
     try {
-      console.log("Nota concluída: ", noteId);
+      //console.log("Nota concluída: ", noteId);
       await markAsCompleted(noteId);
-      setCompletedCheck(true);
       await refreshUserNotes();
     } catch (error) {
-      console.log("Erro ao concluir a nota: ", error);
-    }
-  };
-
-  const handleCompletedNotes = async () => {
-    const promises = selectedNoteIds.map(async (id: string) => {
-      console.log("concluida: ", id);
-
-      await markAsCompleted(id);
-    });
-
-    try {
-      await Promise.all(promises);
-      setSelectedNoteIds([]);
-      await refreshUserNotes();
-    } catch (error) {
-      console.log("erro ao concluir notas: ", error);
+      //console.log("Erro ao concluir a nota: ", error);
     }
   };
 
@@ -557,20 +515,18 @@ const styles = StyleSheet.create({
   },
   submitDeleteButton: {
     marginTop: 10,
-    backgroundColor: "#f00"
+    backgroundColor: "#ff9898"
   },
   submitCompletedButton: {
     marginTop: 10,
-    backgroundColor: "#0f0"
+    backgroundColor: "#acffac"
   },
-  // teste
   selectedNoteContainer: {
-    // backgroundColor: "#d0e4ff",
     borderColor: "#007aff",
     borderWidth: 2
   },
   completedNoteContainer: {
-    borderColor: "#0f0",
+    borderColor: "#acffac",
     borderWidth: 2
   }
 });

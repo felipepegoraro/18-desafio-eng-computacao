@@ -1,46 +1,44 @@
-import { useEffect, useState } from "react";
+import { useState, useCallback } from "react";
 import { ScrollView, View, StyleSheet } from "react-native";
 import { Text, Provider, ActivityIndicator } from "react-native-paper";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { db, auth } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
 import RegisterNewPet from "./registerNewPet";
-import PetCard from "./PetCard";
 import PetList from "./PetList";
 
 const Home = ({ navigation }) => {
   const user = auth.currentUser;
-
   const [loading, setLoading] = useState(true);
-
   const [ownsPet, setOwnsPet] = useState(false);
+  const [refresh, setRefresh] = useState(false); // Estado para controlar a atualização
 
-  useEffect(() => {
-    const fetchUserName = async () => {
-      // setIsLoading(true);
-      try {
-        if (user) {
-          console.log("Current user UID:", user.uid);
-          const docRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            console.log("data:", docSnap.data());
-            setOwnsPet(docSnap.data().ownsPet);
-          } else {
-            console.log("Sem doc!");
+  const refreshData = () => setRefresh(!refresh); // Função que alterna o estado
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUserData = async () => {
+        setLoading(true);
+        try {
+          if (user) {
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              setOwnsPet(docSnap.data().ownsPet);
+            }
           }
-        } else {
-          console.log("Nenhum usuario logado");
+        } catch (error) {
+          // console.error("Erro ao buscar o nome do usuário", error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("erro fetching o nome", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserName();
-  }, [user]);
+      };
+
+      fetchUserData();
+    }, [user, refresh]) // Dependência adicionada para atualizar ao mudar "refresh"
+  );
 
   return (
     <Provider>
@@ -61,7 +59,7 @@ const Home = ({ navigation }) => {
               <RegisterNewPet />
             </View>
           ) : (
-            <PetList />
+            <PetList refreshData={refreshData} /> // Passando a função para o PetList
           )}
         </ScrollView>
       </View>
@@ -69,6 +67,7 @@ const Home = ({ navigation }) => {
   );
 };
 
+export default Home;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -130,5 +129,3 @@ const styles = StyleSheet.create({
     width: "40%"
   }
 });
-
-export default Home;
